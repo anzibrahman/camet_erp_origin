@@ -11,7 +11,9 @@ export async function getPartySales(req, res) {
       Organization.findOne({ _id: cmp_id, owner: req.owner, isBlocked: false }).lean(),
       SecondaryUser.findById(req.sUserId).lean(),
     ]);
-    if (!company || !user?.configurations?.some(config => String(config.organization) === cmp_id)) return res.status(403).json({ message: "Company access denied" });
+    const assigned = user?.organization?.some(id => String(id?._id || id) === cmp_id) ||
+      user?.configurations?.some(config => String(config.organization?._id || config.organization) === cmp_id);
+    if (!company || !assigned) return res.status(403).json({ message: "Company access denied" });
     const page = Math.max(1, Number.parseInt(req.query.page, 10) || 1);
     const limit = 30;
     const filter = { cmp_id, Primary_user_id: req.owner, "party._id": partyId, isCancelled: { $ne: true } };

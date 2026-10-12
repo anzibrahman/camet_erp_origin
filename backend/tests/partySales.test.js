@@ -25,3 +25,22 @@ test("unassigned account cannot inspect party sales",async t=>{
 test("invalid party identifier is rejected",async()=>{
  const req=request();req.params.partyId="invalid";const res=response();await getPartySales(req,res);assert.equal(res.code,400);
 });
+
+test("organization-array assignment allows access with empty configurations", async t => {
+ t.mock.method(Organization,"findOne",()=>query({}));
+ t.mock.method(User,"findById",()=>query({organization:[new mongoose.Types.ObjectId(company)],configurations:[]}));
+ t.mock.method(Sales,"find",()=>query([]));t.mock.method(Sales,"countDocuments",async()=>0);
+ const res=response();await getPartySales(request(),res);assert.equal(res.code,undefined);assert.deepEqual(res.data.data,[]);
+});
+test("another organization assignment does not allow access", async t => {
+ t.mock.method(Organization,"findOne",()=>query({}));
+ t.mock.method(User,"findById",()=>query({organization:[new mongoose.Types.ObjectId()],configurations:[]}));
+ t.mock.method(Sales,"find",()=>{throw Error("Unexpected access");});
+ const res=response();await getPartySales(request(),res);assert.equal(res.code,403);
+});
+test("assignment cannot bypass company ownership or blocked-company check", async t => {
+ t.mock.method(Organization,"findOne",filter=>{assert.equal(filter.owner,owner);assert.equal(filter.isBlocked,false);return query(null);});
+ t.mock.method(User,"findById",()=>query({organization:[company],configurations:[]}));
+ t.mock.method(Sales,"find",()=>{throw Error("Unexpected access");});
+ const res=response();await getPartySales(request(),res);assert.equal(res.code,403);
+});

@@ -1,3 +1,4 @@
+import DebitNotePartyPurchases from "./DebitNotePartyPurchases";
 import CreditNotePartySales from "./CreditNotePartySales";
 /* eslint-disable react/prop-types */
 import { useEffect, useRef, useState } from "react";
@@ -67,6 +68,7 @@ export default function DesktopPartySearch({ cmpId, party, locked, voucherType =
     <div className="sales-party-control">
     <div className="credit-note-party-picker">
     {voucherType === "creditNote" && party?._id && <CreditNotePartySales key={party?._id || "none"} cmpId={cmpId} party={party} locked={locked} />}
+    {voucherType === "debitNote" && party?._id && <DebitNotePartyPurchases key={party?._id || "none"} cmpId={cmpId} party={party} locked={locked} />}
     <div className="credit-note-party-select"><CreatableSelect ref={partySelectRef} inputId="desktop-sale-party" instanceId="desktop-sale-party"
       placeholder={creating ? "Adding customer…" : isPurchase ? "Search supplier…" : "Search or add customer…"} isClearable isDisabled={locked || creating}
       value={party?._id ? party : null} options={input === search ? data : []}
