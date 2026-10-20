@@ -1,3 +1,4 @@
+import { reverseVoucherAdjustments } from "../helpers/adjustmentHelper.js";
 import { voucherEditError } from "../helpers/voucherLifecycleHelper.js";
 import mongoose from "mongoose";
 import { prepareVoucherParty } from "../helpers/voucherPartyHelper.js";
@@ -432,6 +433,7 @@ export const cancelSale = async (req, res) => {
       Primary_user_id: sale.Primary_user_id,
     }).session(session);
     if (outstandingRecord) {
+        await reverseVoucherAdjustments(outstandingRecord, req.sUserId || req.owner, req.body.cancelReason, session);
       //// update pending amount and
       const outstandingResult = await updateOutstandingBalance({
         existingVoucher: sale,
@@ -673,7 +675,11 @@ export const getSalesDetails = async (req, res) => {
     });
 
     const isEditable =
-      !outstandingOfSale || outstandingOfSale?.appliedReceipts?.length === 0;
+      !outstandingOfSale || (
+        !outstandingOfSale.appliedReceipts?.length &&
+        !outstandingOfSale.appliedPayments?.length &&
+        !(outstandingOfSale.adjustmentAmount > 0)
+      );
     saleDetails.isEditable = isEditable;
 
     res

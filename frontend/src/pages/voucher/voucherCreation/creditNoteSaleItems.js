@@ -10,7 +10,7 @@ export function creditNoteItemsFromSale(items, quantities) {
     const GodownList = (item.GodownList || []).map((row, rowIndex) => {
       const sold = row.added !== false ? Number(row.count) || 0 : 0;
       const count = Number(quantities?.[itemIndex + ":" + rowIndex] ?? sold);
-      if (!Number.isFinite(count) || count < 0 || count > sold) throw new Error("Return quantity must be between zero and the sold quantity");
+      if (!Number.isFinite(count) || count < 0) throw new Error("Return quantity must be a valid non-negative number");
       const ratio = sold > 0 ? count / sold : 0;
       return { ...row, count, actualCount: Number(((Number(row.actualCount ?? sold)) * ratio).toFixed(3)), added: count > 0, discountAmount: Number(row.discountAmount || 0) * ratio };
     });

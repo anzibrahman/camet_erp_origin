@@ -17,6 +17,7 @@ const creditNoteSchema = new Schema(
     selectedDate: { type: String },
     voucherType: { type: String, default: "creditNote" },
     convertedFrom: { type: Array, default: [] },
+    selectedSaleIds: [{ type: Schema.Types.ObjectId, ref: "Sales" }],
     serialNumber: { type: Number },
     userLevelSerialNumber: { type: Number },
     creditNoteNumber: {

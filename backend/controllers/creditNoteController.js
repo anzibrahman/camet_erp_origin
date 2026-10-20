@@ -1,3 +1,4 @@
+import { settleCreditNoteSales, reverseVoucherAdjustments } from "../helpers/adjustmentHelper.js";
 import { voucherEditError } from "../helpers/voucherLifecycleHelper.js";
 import { prepareVoucherParty } from "../helpers/voucherPartyHelper.js";
 import { formatToLocalDate, truncateToNDecimals } from "../helpers/helper.js";
@@ -111,20 +112,23 @@ export const createCreditNote = async (req, res) => {
       true /// negative value for tally (purchase is credit entry)
     );
 
+    const adjustments = await settleCreditNoteSales(result, req.body.selectedSaleIds, req.sUserId || req.owner, session);
+
     await session.commitTransaction();
     session.endSession();
 
     res.status(201).json({
       success: true,
       data: result,
+      adjustments,
       message: "Credit Note created successfully",
     });
   } catch (error) {
     console.error(error);
     await session.abortTransaction();
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
-      message: "An error occurred while creating the Credit",
+      message: error.statusCode ? error.message : "An error occurred while creating the Credit",
       error: error.message,
     });
   } finally {
@@ -182,6 +186,7 @@ export const cancelCreditNote = async (req, res) => {
         Primary_user_id: existingCreditNote.Primary_user_id,
       }).session(session);
       if (outstandingRecord) {
+        await reverseVoucherAdjustments(outstandingRecord, req.sUserId || req.owner, req.body.cancelReason, session);
         const outstandingResult = await updateOutstandingBalance({
           existingVoucher: existingCreditNote,
           valueToUpdateInOutstanding: 0,
@@ -466,8 +471,11 @@ export const getCreditNoteDetails = async (req, res) => {
     });
 
     const isEditable =
-      !outstandingOfCreditNote ||
-      outstandingOfCreditNote?.appliedPayments?.length === 0;
+      !outstandingOfCreditNote || (
+        !outstandingOfCreditNote.appliedReceipts?.length &&
+        !outstandingOfCreditNote.appliedPayments?.length &&
+        !(outstandingOfCreditNote.adjustmentAmount > 0)
+      );
 
     details.isEditable = isEditable;
 

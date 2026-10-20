@@ -12,6 +12,7 @@ const initialState = {
   initialized: false,
   date: "",
   convertedFrom: [],
+  selectedSaleIds: [],
   products: [],
   page: 1,
   hasMore: true,
@@ -68,11 +69,14 @@ export const commonVoucherSlice = createSlice({
   name: "commonVoucher",
   initialState,
   reducers: {
+    setSelectedSaleIds: (state, action) => { state.selectedSaleIds = action.payload; },
     addParty: (state, action) => {
+      if (String(state.party?._id) !== String(action.payload?._id)) state.selectedSaleIds = [];
       state.party = action.payload;
       state.newBillToShipTo = {};
     },
     removeParty: (state) => {
+      state.selectedSaleIds = [];
       state.party = {};
     },
 
@@ -193,6 +197,7 @@ export const commonVoucherSlice = createSlice({
       state.subcategory = action.payload;
     },
     setParty: (state, action) => {
+      if (String(state.party?._id) !== String(action.payload?._id)) state.selectedSaleIds = [];
       state.party = action.payload;
     },
     setItem: (state, action) => {
@@ -624,6 +629,7 @@ export const commonVoucherSlice = createSlice({
 
 // Action creators are generated for each case reducer function
 export const {
+  setSelectedSaleIds,
   addParty,
   removeParty,
   addItem,

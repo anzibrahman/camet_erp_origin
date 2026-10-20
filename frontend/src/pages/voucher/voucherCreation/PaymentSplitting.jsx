@@ -456,6 +456,7 @@ function PaymentSplitting({ embedded = false, onSaved, onTransactionSaved } = {}
         series_id: selectedVoucherSeriesFromRedux?._id,
         usedSeriesNumber: selectedVoucherSeriesFromRedux?.currentNumber,
         orgId: cmp_id,
+        selectedSaleIds: voucherType === "creditNote" ? (reduxData.selectedSaleIds || []) : [],
 
         /// these values are not getting latest data,so we need to take it directly form store
         finalAmount: Number(reduxData?.finalAmount?.toFixed(2) || 0),

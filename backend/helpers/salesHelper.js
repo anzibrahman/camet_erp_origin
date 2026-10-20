@@ -1116,7 +1116,8 @@ export const updateOutstandingBalance = async ({
       existingVoucher?.voucherType,
       newBillBalance || 0,
       sumOfAppliedReceipts,
-      sumOfAppliedPayments
+      sumOfAppliedPayments,
+      matchedOutStanding?.adjustmentAmount || 0
     );
 
     console.log(`New bill balance: ${newBillBalance}`);

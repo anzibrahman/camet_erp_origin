@@ -17,8 +17,8 @@ test("zero quantity rows are excluded from selected credit quantities",()=>{
  const result=creditNoteItemsFromSale(saleItems,{"0:0":0,"0:1":1});
  assert.equal(result[0].totalCount,1);assert.equal(result[0].GodownList[0].added,false);assert.equal(result[0].total,84);
 });
-test("invalid and excessive return quantities are rejected",()=>{
- for(const quantity of [-1,5,NaN])assert.throws(()=>creditNoteItemsFromSale(saleItems,{"0:0":quantity}),/Return quantity/);
+test("negative and non-finite return quantities are rejected",()=>{
+ for(const quantity of [-1,NaN,Infinity])assert.throws(()=>creditNoteItemsFromSale(saleItems,{"0:0":quantity}),/Return quantity/);
 });
 test("inclusive-tax sale rate remains inclusive in the credit note",()=>{
  const result=creditNoteItemsFromSale([{...saleItems[0],isTaxInclusive:true,GodownList:[{...saleItems[0].GodownList[0],selectedPriceRate:105}]}],{"0:0":1});
@@ -55,4 +55,13 @@ test("matching items retain separate godown and batch destinations", () => {
  const result = combineSaleReturnItems([single(), single({}, {godown_id: 'other', batch: 'B'})]);
  assert.equal(result.length, 1); assert.equal(result[0].GodownList.length, 2);
  assert.equal(result[0].totalCount, 8);
+});
+
+test("return quantities can exceed source quantity while preserving history and pricing", () => {
+ const source=[{...saleItems[0],GodownList:[{...saleItems[0].GodownList[0],count:1,actualCount:2,discountType:'amount',discountAmount:10}]}];
+ const before=JSON.stringify(source);
+ const result=creditNoteItemsFromSale(source,{'0:0':5});
+ assert.equal(result[0].totalCount,5);assert.equal(result[0].totalActualCount,10);
+ assert.equal(result[0].GodownList[0].discountAmount,50);assert.equal(result[0].total,472.5);
+ assert.equal(JSON.stringify(source),before);
 });

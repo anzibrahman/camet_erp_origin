@@ -99,11 +99,9 @@ export default function DesktopProductEntry({ locked }) {
     if (!Number.isFinite(Number(quantity)) || !Number.isFinite(Number(rate))) {
       setError("Enter a valid quantity and rate."); return;
     }
-    const existing = voucherType === "sales"
-      ? matchingSaleRateItem(items, product, Number(stockIndex), rate, isTaxInclusive)
-      : items.find(item => item._id === product._id);
+    const existing = matchingSaleRateItem(items, product, Number(stockIndex), rate, isTaxInclusive);
     const added = addDesktopStockRow(product, existing, Number(stockIndex), Number(quantity), Number(rate), isTaxInclusive);
-    if (voucherType === "sales") added._voucherLineId = existing?._voucherLineId || (existing ? undefined : "sale-line-" + crypto.randomUUID());
+    added._voucherLineId = existing?._voucherLineId || "voucher-line-" + crypto.randomUUID();
     dispatch(addItem({ payload: added, moveToTop: false }));
     dispatch(resetPaymentSplit());
     setProduct(null); setStockIndex(""); setQuantity("1"); setError("");

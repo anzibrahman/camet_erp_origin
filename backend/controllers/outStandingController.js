@@ -442,7 +442,7 @@ export const fetchOutstandingTotal = async (req, res) => {
 //     const outstandings = await TallyData.find(query)
 //       .sort({ bill_date: 1 })
 //       .select(
-//         "_id bill_no billId bill_date bill_pending_amt bill_amount source classification appliedReceipts appliedPayments"
+//         "_id bill_no billId bill_date bill_pending_amt bill_amount source classification adjustmentAmount appliedReceipts appliedPayments"
 //       )
 //       .lean();
 
@@ -636,7 +636,7 @@ export const fetchOutstandingDetails = async (req, res) => {
     const outstandings = await TallyData.find(query)
       .sort({ bill_date: 1 })
       .select(
-        "_id bill_no billId bill_date bill_pending_amt bill_amount source classification appliedReceipts appliedPayments"
+        "_id bill_no billId bill_date bill_pending_amt bill_amount source classification adjustmentAmount appliedReceipts appliedPayments"
       )
       .lean();
 
@@ -699,7 +699,8 @@ export const fetchOutstandingDetails = async (req, res) => {
                 outstanding.source,
                 outstanding.bill_amount,
                 totalAppliedReceipts,
-                totalAppliedPayments
+                totalAppliedPayments,
+                outstanding?.adjustmentAmount || 0
               );
 
               // updatedPendingAmount = outstanding.bill_amount - totalAppliedReceipts;
@@ -732,7 +733,8 @@ export const fetchOutstandingDetails = async (req, res) => {
                 outstanding.source,
                 outstanding.bill_amount,
                 totalAppliedReceipts,
-                totalAppliedPayments
+                totalAppliedPayments,
+                outstanding?.adjustmentAmount || 0
               );
             }
           }

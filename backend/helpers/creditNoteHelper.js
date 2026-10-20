@@ -214,6 +214,7 @@ console.log("line 203 creditnote")
       party,
       despatchDetails,
       items: updatedItems,
+      selectedSaleIds: req.body.selectedSaleIds || [],
       additionalCharges: updateAdditionalCharge,
       note,
       finalAmount: lastAmount,

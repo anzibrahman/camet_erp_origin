@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import api from "../../../api/api";
-import { setItem, setPriceLevel, resetPaymentSplit } from "../../../../slices/voucherSlices/commonVoucherSlice";
+import { setItem, setPriceLevel, resetPaymentSplit, setSelectedSaleIds } from "../../../../slices/voucherSlices/commonVoucherSlice";
 import { saleReturnRows, creditNoteItemsFromSale, combineSaleReturnItems } from "./creditNoteSaleItems";
 
 export default function CreditNotePartySales({ cmpId, party, locked = false }) {
@@ -39,10 +39,11 @@ export default function CreditNotePartySales({ cmpId, party, locked = false }) {
       if (!items.length) { toast.error("Enter a return quantity for at least one item"); return; }
       if (existingItems.length && !window.confirm("Replace the current credit-note items with items from the selected sales?")) return;
       dispatch(setItem(items));
+      dispatch(setSelectedSaleIds(selected.map(sale => sale._id)));
       if (selected[0]?.selectedPriceLevel && selected.every(sale => sale.selectedPriceLevel?._id === selected[0].selectedPriceLevel._id)) dispatch(setPriceLevel(selected[0].selectedPriceLevel));
       dispatch(resetPaymentSplit());
       setOpen(false);
-      toast.success("Sale items added. Adjust quantities in the item list and save the credit note.");
+      toast.success("Sale items added. Saving will adjust available credit against the selected sales in selection order.");
     } catch (error) { toast.error(error.message); }
   };
   return <>
@@ -64,7 +65,7 @@ export default function CreditNotePartySales({ cmpId, party, locked = false }) {
         </> : <>
           <div className="credit-note-sales-tools"><button type="button" onClick={() => setPreview(null)}>Back to sales</button><strong>{selected.length} sales selected</strong><button type="button" onClick={reviewItems}>Qty All</button></div>
           <div className="credit-note-sales-scroll"><table><thead><tr><th>Item / Godown / Batch</th><th>Sold Qty</th><th>Rate</th><th>Discount</th><th>Return Qty</th></tr></thead><tbody>
-            {rows.map(({ item, row, key, soldQuantity }) => <tr key={key}><td>{item.product_name}<small>{[row.godown, row.batch].filter(Boolean).join(" / ")} · Tax {item.igst || 0}%{item.isTaxInclusive ? " inclusive" : ""}</small></td><td>{soldQuantity} {item.unit}</td><td>₹ {Number(row.selectedPriceRate || 0).toFixed(2)}</td><td>{row.discountType === "percentage" ? Number(row.discountPercentage || 0) + "%" : "₹ " + Number(row.discountAmount || 0).toFixed(2)}</td><td><input aria-label={"Return quantity for " + item.product_name + " " + key} type="number" min="0" max={soldQuantity} step="any" value={quantities[key] ?? ""} onChange={event => setQuantities(value => ({ ...value, [key]: event.target.value }))} /></td></tr>)}
+            {rows.map(({ item, row, key, soldQuantity }) => <tr key={key}><td>{item.product_name}<small>{[row.godown, row.batch].filter(Boolean).join(" / ")} · Tax {item.igst || 0}%{item.isTaxInclusive ? " inclusive" : ""}</small></td><td>{soldQuantity} {item.unit}</td><td>₹ {Number(row.selectedPriceRate || 0).toFixed(2)}</td><td>{row.discountType === "percentage" ? Number(row.discountPercentage || 0) + "%" : "₹ " + Number(row.discountAmount || 0).toFixed(2)}</td><td><input aria-label={"Return quantity for " + item.product_name + " " + key} type="number" min="0" step="any" value={quantities[key] ?? ""} onChange={event => setQuantities(value => ({ ...value, [key]: event.target.value }))} /></td></tr>)}
           </tbody></table></div>
           <footer><button type="button" onClick={() => setOpen(false)}>Cancel</button><button type="button" disabled={locked || !rows.length} onClick={addToCreditNote}>Add to Credit Note</button></footer>
         </>}
