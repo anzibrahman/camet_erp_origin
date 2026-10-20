@@ -1,4 +1,4 @@
-import { reverseVoucherAdjustments } from "../helpers/adjustmentHelper.js";
+import { beginAdjustmentEdit, finishAdjustmentEdit, reverseVoucherAdjustments } from "../helpers/adjustmentHelper.js";
 import { voucherEditError } from "../helpers/voucherLifecycleHelper.js";
 import mongoose from "mongoose";
 import { prepareVoucherParty } from "../helpers/voucherPartyHelper.js";
@@ -245,6 +245,10 @@ export const editSale = async (req, res) => {
         return res.status(409).json({ success: false, message: editError });
       }
 
+      const adjustmentPlan = !isVanSale
+        ? await beginAdjustmentEdit(existingSale, party, orgId, req.sUserId || req.owner, session)
+        : null;
+
       const secondaryUser = await secondaryUserModel
         .findById(req.sUserId)
         .session(session);
@@ -331,9 +335,11 @@ export const editSale = async (req, res) => {
 
       //// update the outstanding of the sale against specific party
 
-      const valueToUpdateInOutstanding = finalOutstandingAmount;
+      const valueToUpdateInOutstanding = finalOutstandingAmount ?? lastAmount;
 
       if (
+        adjustmentPlan?.records.length ||
+        (adjustmentPlan && !adjustmentPlan.sameParty) ||
         valueToUpdateInOutstanding !==
         (existingSale.finalOutstandingAmount || existingSale.finalAmount)
         /// in old sales we dont have finalOutstandingAmount so we added || finalAmount
@@ -352,6 +358,8 @@ export const editSale = async (req, res) => {
           classification: "Dr",
         });
       }
+
+      if (adjustmentPlan) await finishAdjustmentEdit(result, adjustmentPlan, req.sUserId || req.owner, session);
 
       await session.commitTransaction();
       return res.status(200).json({
@@ -677,8 +685,7 @@ export const getSalesDetails = async (req, res) => {
     const isEditable =
       !outstandingOfSale || (
         !outstandingOfSale.appliedReceipts?.length &&
-        !outstandingOfSale.appliedPayments?.length &&
-        !(outstandingOfSale.adjustmentAmount > 0)
+        !outstandingOfSale.appliedPayments?.length
       );
     saleDetails.isEditable = isEditable;
 

@@ -14,6 +14,15 @@ const schema = new Schema({
   reversedAt: Date,
   reversedBy: { type: Schema.Types.ObjectId },
   reversalReason: String,
+  history: [{
+    allocatedAmount: { type: Number, required: true },
+    status: { type: String, enum: ["reversed"], default: "reversed" },
+    createdBy: { type: Schema.Types.ObjectId },
+    reversedAt: { type: Date, required: true },
+    reversedBy: { type: Schema.Types.ObjectId },
+    reversalReason: String,
+  }],
+  originalAdjustmentId: { type: Schema.Types.ObjectId, ref: "Adjustment" },
 }, { timestamps: true });
 schema.index({ cmp_id: 1, saleId: 1, status: 1 });
 schema.index({ cmp_id: 1, creditNoteId: 1, status: 1 });

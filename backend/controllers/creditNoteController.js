@@ -1,4 +1,4 @@
-import { settleCreditNoteSales, reverseVoucherAdjustments } from "../helpers/adjustmentHelper.js";
+import { beginAdjustmentEdit, finishAdjustmentEdit, settleCreditNoteSales, reverseVoucherAdjustments } from "../helpers/adjustmentHelper.js";
 import { voucherEditError } from "../helpers/voucherLifecycleHelper.js";
 import { prepareVoucherParty } from "../helpers/voucherPartyHelper.js";
 import { formatToLocalDate, truncateToNDecimals } from "../helpers/helper.js";
@@ -294,6 +294,8 @@ export const editCreditNote = async (req, res) => {
       return res.status(409).json({ success: false, message: editError });
     }
 
+    const adjustmentPlan = await beginAdjustmentEdit(existingCreditNote, party, orgId, req.sUserId || req.owner, session);
+
     if (existingCreditNote?.series_id?.toString() !== series_id?.toString()) {
       const { voucherNumber, usedSeriesNumber: newUsedSeriesNumber } =
         await generateVoucherNumber(
@@ -320,6 +322,8 @@ console.log("creditnotecontroller line 294")
       selectedGodownName: "",
       serialNumber: existingCreditNote.serialNumber, // Keep existing serial number
       cmp_id: orgId,
+      settlementMode: existingCreditNote.settlementMode || (existingCreditNote.selectedSaleIds?.length ? "selected" : "automatic"),
+      selectedSaleIds: adjustmentPlan.sameParty ? adjustmentPlan.saleIds : [],
       partyAccount: party?.partyName,
       party,
       despatchDetails,
@@ -341,7 +345,7 @@ console.log("creditnotecontroller line 294")
       createdAt: existingCreditNote.createdAt,
     };
 
-    await creditNoteModel.findByIdAndUpdate(creditNoteId, updateData, {
+    const updatedCreditNote = await creditNoteModel.findByIdAndUpdate(creditNoteId, updateData, {
       new: true,
       session,
     });
@@ -385,20 +389,22 @@ console.log("creditnotecontroller line 294")
         session
       );
     }
+    await finishAdjustmentEdit(updatedCreditNote, adjustmentPlan, req.sUserId || req.owner, session);
+
     await session.commitTransaction();
     session.endSession();
     res.status(200).json({
       success: true,
       message: "Credit note edited successfully",
-      data: existingCreditNote,
+      data: updatedCreditNote,
     });
   } catch (error) {
     await session.abortTransaction();
 
     console.error(error);
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
-      message: "An error occurred while editing the sale.",
+      message: error.statusCode ? error.message : "An error occurred while editing the credit note.",
       error: error.message,
     });
   } finally {
@@ -473,8 +479,7 @@ export const getCreditNoteDetails = async (req, res) => {
     const isEditable =
       !outstandingOfCreditNote || (
         !outstandingOfCreditNote.appliedReceipts?.length &&
-        !outstandingOfCreditNote.appliedPayments?.length &&
-        !(outstandingOfCreditNote.adjustmentAmount > 0)
+        !outstandingOfCreditNote.appliedPayments?.length
       );
 
     details.isEditable = isEditable;

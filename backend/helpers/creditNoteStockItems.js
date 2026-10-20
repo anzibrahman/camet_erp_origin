@@ -1,7 +1,14 @@
 // Stock updates aggregate product variants independently of their prices and taxes.
 export function creditNoteStockItems(items) {
   const products = new Map();
-  for (const item of items || []) {
+  for (const storedItem of items || []) {
+    // Mongoose subdocument fields live in _doc; spreading the document itself
+    // loses _id, quantities and stock flags when reversing a saved voucher.
+    const item = typeof storedItem?.toObject === "function"
+      ? storedItem.toObject() : storedItem;
+    if (!item?._id) {
+      throw Object.assign(new Error("A credit-note item is missing its product ID. Reload the voucher and select the product again."), { statusCode: 400 });
+    }
     const id = String(item._id);
     if (!products.has(id)) products.set(id, { ...item, totalCount: 0, totalActualCount: 0, GodownList: [] });
     const product = products.get(id);

@@ -215,6 +215,7 @@ console.log("line 203 creditnote")
       despatchDetails,
       items: updatedItems,
       selectedSaleIds: req.body.selectedSaleIds || [],
+      settlementMode: req.body.selectedSaleIds?.length ? "selected" : "automatic",
       additionalCharges: updateAdditionalCharge,
       note,
       finalAmount: lastAmount,

@@ -1091,6 +1091,7 @@ export const updateOutstandingBalance = async ({
     // Find existing outstanding record
     const matchedOutStanding = await TallyData.findOne({
       party_id: existingVoucher?.party?._id,
+      Primary_user_id: existingVoucher.Primary_user_id,
       cmp_id: orgId,
       billId: existingVoucher?._id.toString(),
     }).session(session);
@@ -1134,7 +1135,11 @@ export const updateOutstandingBalance = async ({
       updatedTallyData = await TallyData.findByIdAndUpdate(
         matchedOutStanding._id,
         {
-          party_id: existingVoucher?.party?._id,
+          party_id: party?._id,
+          party_name: party?.partyName,
+          accountGroup: party?.accountGroup_id,
+          subGroup: party?.subGroup_id,
+          bill_no: voucherNumber,
           cmp_id: orgId,
           billId: existingVoucher?._id.toString(),
           bill_amount: newBillBalance,

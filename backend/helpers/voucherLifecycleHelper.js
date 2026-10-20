@@ -8,8 +8,5 @@ export async function voucherEditError(voucher, session, isOrder = false) {
   if (outstanding?.appliedReceipts?.length || outstanding?.appliedPayments?.length) {
     return "This voucher has payments applied and cannot be edited. Reverse the applied payments first.";
   }
-  if (outstanding?.adjustmentAmount > 0) {
-    return "This voucher has active adjustments and cannot be edited. Reverse the adjustments first.";
-  }
   return null;
 }
