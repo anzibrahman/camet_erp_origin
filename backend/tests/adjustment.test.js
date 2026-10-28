@@ -5,13 +5,14 @@ import Adjustment from "../models/adjustmentModel.js";
 import Tally from "../models/TallyData.js";
 import Sales from "../models/salesModel.js";
 import CreditNote from "../models/creditNoteModel.js";
+import Series from "../models/VoucherSeriesModel.js";
 import Secondary from "../models/secondaryUserModel.js";
 import Company from "../models/OragnizationModel.js";
 import Settlement from "../models/settlementModel.js";
 import Product from "../models/productModel.js";
-import { editSale } from "../controllers/saleController.js";
+import { createSale, editSale } from "../controllers/saleController.js";
 import { editCreditNote } from "../controllers/creditNoteController.js";
-import { beginAdjustmentEdit, finishAdjustmentEdit, settleCreditNoteSales, reverseVoucherAdjustments } from "../helpers/adjustmentHelper.js";
+import { settleSaleCreditNotes, beginAdjustmentEdit, finishAdjustmentEdit, settleCreditNoteSales, reverseVoucherAdjustments } from "../helpers/adjustmentHelper.js";
 import { calculateBillPending } from "../helpers/helper.js";
 import { voucherEditError } from "../helpers/voucherLifecycleHelper.js";
 import { updateTallyData as applyReceipt } from "../helpers/receiptHelper.js";
@@ -84,13 +85,13 @@ test("unrelated or cancelled selected sale is rejected", async t => {
  await assert.rejects(settleCreditNoteSales(f.creditNote, [id()], id(), f.session), /cancelled or does not belong/);
  assert.equal(f.records.length, 0);
 });
-test("standalone credit note settles without selecting a sale or matching products", async t => {
+test("standalone credit note leaves both balances open without a selection", async t => {
  const f = fixture(t,[200],100);
  f.creditNote.selectedSaleIds=[];
  await settleCreditNoteSales(f.creditNote, undefined, id(), f.session);
- assert.equal(f.records.length,1);
- assert.equal(f.documents[1].bill_pending_amt,100);
- assert.equal(f.credit.bill_pending_amt,0);
+ assert.equal(f.records.length,0);
+ assert.equal(f.documents[1].bill_pending_amt,200);
+ assert.equal(f.credit.bill_pending_amt,-100);
 });
 for (const side of ["sale", "credit note"]) test(side + " cancellation restores both sides exactly once", async t => {
  const f = fixture(t, [100, 100], 150);
@@ -145,7 +146,7 @@ for (const [kind, amount, salePending, creditPending] of [
  assert.equal(f.documents[1].bill_pending_amt, kind === "sales" ? amount : 100);
  assert.equal(f.credit.bill_pending_amt, kind === "creditNote" ? -amount : -50);
 });
-test("credit note edit redistributes in original selection order", async t => {
+test("credit note edit redistributes in oldest-sale order", async t => {
  const f = fixture(t, [100,100,100],250);
  await settleCreditNoteSales(f.creditNote,f.creditNote.selectedSaleIds,id(),f.session);
  const plan=await beginAdjustmentEdit(f.creditNote,f.creditNote.party,f.creditNote.cmp_id,id(),f.session);
@@ -155,7 +156,7 @@ test("credit note edit redistributes in original selection order", async t => {
  assert.equal(f.credit.bill_pending_amt,0);
  assert.equal(f.records.filter(r=>r.status === "active").length,2);
 });
-test("sale edit leaves unrelated sales using the same credit note unchanged", async t => {
+test("sale reduction retains surplus without adjusting another invoice", async t => {
  const f=fixture(t,[100,100,100],250);
  await settleCreditNoteSales(f.creditNote,f.creditNote.selectedSaleIds,id(),f.session);
  const sale=f.sales[0];
@@ -254,36 +255,79 @@ test("zero edit followed by increase reuses the reversed pair under the original
  assert.equal(f.records[0].allocatedAmount,80);
 });
 
-test("automatic credit spans sales in outstanding date order and retains surplus",async t=>{
- const f=fixture(t,[100,100,100],350); f.creditNote.selectedSaleIds=[];
- await settleCreditNoteSales(f.creditNote,[],id(),f.session);
- assert.deepEqual(f.records.map(r=>String(r.saleId)),f.sales.map(s=>String(s._id)));
- assert.deepEqual(f.records.map(r=>r.allocatedAmount),[100,100,100]);
- assert.equal(f.credit.bill_pending_amt,-50);
-});
-test("automatic note with no open sales keeps credit outstanding",async t=>{
- const f=fixture(t,[0],100); f.creditNote.selectedSaleIds=[];
- await settleCreditNoteSales(f.creditNote,[],id(),f.session);
- assert.equal(f.records.length,0); assert.equal(f.credit.bill_pending_amt,-100);
-});
-test("automatic note edit recalculates then cancellation restores all sales",async t=>{
- const f=fixture(t,[100,100,100],250); f.creditNote.selectedSaleIds=[]; f.creditNote.settlementMode="automatic";
- await settleCreditNoteSales(f.creditNote,[],id(),f.session);
- const plan=await beginAdjustmentEdit(f.creditNote,f.creditNote.party,f.creditNote.cmp_id,id(),f.session);
- f.credit.bill_pending_amt=-120;
- await finishAdjustmentEdit(f.creditNote,plan,id(),f.session);
- assert.deepEqual(f.documents.slice(1).map(d=>d.bill_pending_amt),[0,80,100]);
- await reverseVoucherAdjustments(f.credit,id(),"Cancelled",f.session);
- assert.deepEqual(f.documents.slice(1).map(d=>d.bill_pending_amt),[100,100,100]);
-});
-test("explicit selection remains restricted to selected sales",async t=>{
- const f=fixture(t,[100,100],150); f.creditNote.settlementMode="selected";
+test("selected credit adjusts only the selected invoice, leaving older sales open",async t=>{
+ const f=fixture(t,[100,100],150);
  await settleCreditNoteSales(f.creditNote,[f.sales[1]._id],id(),f.session);
  assert.deepEqual(f.documents.slice(1).map(d=>d.bill_pending_amt),[100,0]);
  assert.equal(f.credit.bill_pending_amt,-50);
 });
-test("selected mode with all selections cancelled never falls back to automatic",async t=>{
- const f=fixture(t,[100],50); f.creditNote.settlementMode="selected";
- await settleCreditNoteSales(f.creditNote,[],id(),f.session);
+test("standalone note stays unallocated on edit",async t=>{
+ const f=fixture(t,[100,100],150); f.creditNote.selectedSaleIds=[];
+ const plan=await beginAdjustmentEdit(f.creditNote,f.creditNote.party,f.creditNote.cmp_id,id(),f.session);
+ f.credit.bill_pending_amt=-200;
+ await finishAdjustmentEdit(f.creditNote,plan,id(),f.session);
+ assert.deepEqual(f.documents.slice(1).map(d=>d.bill_pending_amt),[100,100]);
+ assert.equal(f.credit.bill_pending_amt,-200); assert.equal(f.records.length,0);
+});
+for(const amount of [150,200,250]) test("standalone sale of "+amount+" does not consume earlier credit",async t=>{
+ const f=fixture(t,[amount],200);
+ assert.deepEqual(await settleSaleCreditNotes(f.sales[0],id(),f.session),[]);
+ assert.equal(f.documents[1].bill_pending_amt,amount);
+ assert.equal(f.credit.bill_pending_amt,-200); assert.equal(f.records.length,0);
+});
+
+test("paid, cash, and non-sales documents never consume customer credit",async t=>{
+ const f=fixture(t,[0],100);f.creditNote.selectedSaleIds=[];
+ assert.deepEqual(await settleSaleCreditNotes(f.sales[0],id(),f.session),[]);
+ assert.deepEqual(await settleSaleCreditNotes({...f.sales[0],party:{partyType:"cash"}},id(),f.session),[]);
+ assert.deepEqual(await settleSaleCreditNotes({...f.sales[0],voucherType:"vanSale"},id(),f.session),[]);
  assert.equal(f.records.length,0);
+});
+
+for(const fail of [false,true]) test("standalone sale leaves earlier credit untouched even when adjustment storage would fail: "+fail,async t=>{
+ const f=fixture(t,[200],100); f.creditNote.selectedSaleIds=[];
+ const series=String(id()),actor=id(),events=[];
+ Object.assign(f.session,{startTransaction(){},async abortTransaction(){events.push("abort");},async commitTransaction(){
+   assert.equal(f.documents[1].bill_pending_amt,200);assert.equal(f.credit.bill_pending_amt,-100);events.push("commit");
+ },endSession(){}});
+ t.mock.method(mongoose,"startSession",async()=>f.session);
+ t.mock.method(Series,"findOne",async()=>({series:[{_id:series,lastUsedNumber:1,prefix:"S-"}]}));
+ t.mock.method(Series,"updateOne",async()=>({}));
+ t.mock.method(Secondary,"findById",()=>query({configurations:[],mobile:"123"}));
+ t.mock.method(Company,"findById",()=>query({country:"India"}));
+ t.mock.method(Product,"bulkWrite",async()=>({}));
+ t.mock.method(Sales,"findOne",filter=>filter._id?query(f.sales[0]):Promise.resolve(null));
+ t.mock.method(Sales.prototype,"save",async function(options){assert.equal(options.session,f.session);this._id=f.sales[0]._id;return this;});
+ t.mock.method(Tally,"findOneAndUpdate",async(filter,update,options)=>{
+   assert.equal(options.session,f.session);Object.assign(f.documents[1],update.$set);return f.documents[1];
+ });
+ if(fail)t.mock.method(Adjustment,"create",async()=>{throw new Error("Allocation storage failed");});
+ const req={params:{},query:{},owner:f.sales[0].Primary_user_id,sUserId:actor,body:{orgId:String(f.sales[0].cmp_id),voucherType:"sales",series_id:series,
+  party:{...f.sales[0].party,accountGroup_id:id(),partyName:"Customer"},items:[],additionalChargesFromRedux:[],finalAmount:200,finalOutstandingAmount:200,selectedDate:"2026-10-22",paymentSplittingData:[]}};
+ const res={status(code){this.code=code;return this;},json(data){this.data=data;return this;}};
+ await createSale(req,res);
+ assert.equal(res.code,201);
+ assert.deepEqual(events,["commit"]);
+ assert.deepEqual(res.data.adjustments,[]);
+});
+
+test("source-aware credit only adjusts each invoice by its own remaining returned amount",async t=>{
+ const f=fixture(t,[100,200,120],220);
+ f.creditNote.selectedSaleIds=[f.sales[1]._id,f.sales[2]._id];
+ f.creditNote.returnAllocations=[{saleId:f.sales[1]._id,amount:100},{saleId:f.sales[2]._id,amount:120}];
+ await settleCreditNoteSales(f.creditNote,f.creditNote.selectedSaleIds,id(),f.session);
+ assert.deepEqual(f.documents.slice(1).map(doc=>doc.bill_pending_amt),[100,100,0]);
+ assert.deepEqual(f.records.map(row=>row.allocatedAmount),[100,120]);
+ assert.equal(f.credit.bill_pending_amt,0);
+});
+test("paid source surplus cannot settle another selected invoice or be reapplied twice",async t=>{
+ const f=fixture(t,[0,200],200);
+ f.creditNote.returnAllocations=f.sales.map(sale=>({saleId:sale._id,amount:100}));
+ for(let i=0;i<2;i++) await settleCreditNoteSales(f.creditNote,f.creditNote.selectedSaleIds,id(),f.session);
+ assert.deepEqual(f.documents.slice(1).map(doc=>doc.bill_pending_amt),[0,100]);
+ assert.equal(f.credit.bill_pending_amt,-100);assert.equal(f.records.length,1);
+ const plan=await beginAdjustmentEdit(f.sales[1],f.sales[1].party,f.sales[1].cmp_id,id(),f.session);
+ f.documents[2].bill_pending_amt=250;
+ await finishAdjustmentEdit(f.sales[1],plan,id(),f.session);
+ assert.equal(f.documents[2].bill_pending_amt,150); assert.equal(f.credit.bill_pending_amt,-100);
 });

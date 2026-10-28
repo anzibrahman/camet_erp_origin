@@ -1,3 +1,4 @@
+import { createSalesTransaction } from "../controllers/salesTransactionController.js";
 import { getPartyPurchases } from "../controllers/partyPurchasesController.js";
 import { getPartySales } from "../controllers/partySalesController.js";
 import { saveProformaInvoice, getProformaInvoiceDetails, listProformaInvoices, cancelProformaInvoice } from "../controllers/proformaInvoiceController.js";
@@ -189,6 +190,7 @@ router.post('/createPurchase', authSecondary, secondaryIsBlocked, createPurchase
 router.post('/editPurchase/:id', authSecondary, secondaryIsBlocked, editPurchase)
 router.put("/cancelpurchase/:id", authSecondary, secondaryIsBlocked, cancelPurchase)
 ///credit not routes
+router.post('/createSalesTransaction', authSecondary, secondaryIsBlocked, createSalesTransaction)
 router.post('/createCreditNote', authSecondary, secondaryIsBlocked, createCreditNote)
 router.get('/getCreditNoteDetails/:id', authSecondary, secondaryIsBlocked, getCreditNoteDetails)
 router.put('/cancelCreditNote/:id', authSecondary, secondaryIsBlocked, cancelCreditNote)

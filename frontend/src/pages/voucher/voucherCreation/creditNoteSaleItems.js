@@ -22,7 +22,8 @@ export function creditNoteItemsFromSale(items, quantities) {
 export function combineSaleReturnItems(sales) {
   const groups = new Map();
   for (const sale of sales || []) {
-    for (const { item, row } of saleReturnRows(sale.items)) {
+    for (const { item, row, rowIndex } of saleReturnRows(sale.items)) {
+      const source = { saleId: sale._id, salesNumber: sale.salesNumber, item, rowIndex, quantity: Number(row.count) };
       const discountType = row.discountType || "none";
       const inclusive = Boolean(item.isTaxInclusive || row.isTaxInclusive);
       const key = JSON.stringify([
@@ -39,10 +40,11 @@ export function combineSaleReturnItems(sales) {
         stock.unit || "", Number(stock.actualCount ?? stock.count) / Number(stock.count)]);
       const existing = group.GodownList.find(stock => stockKey(stock) === stockKey(row));
       if (existing) {
+        existing._returnSources.push(source);
         existing.count = Number((Number(existing.count) + Number(row.count)).toFixed(3));
         existing.actualCount = Number((Number(existing.actualCount) + Number(row.actualCount ?? row.count)).toFixed(3));
         existing.discountAmount = Number(existing.discountAmount || 0) + Number(row.discountAmount || 0);
-      } else group.GodownList.push({ ...row, actualCount: Number(row.actualCount ?? row.count), added: true });
+      } else group.GodownList.push({ ...row, _returnSources: [source], actualCount: Number(row.actualCount ?? row.count), added: true });
     }
   }
   return [...groups.values()].map(recalculateDesktopItem);

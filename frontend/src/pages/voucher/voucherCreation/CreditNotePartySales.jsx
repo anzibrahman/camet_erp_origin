@@ -43,7 +43,7 @@ export default function CreditNotePartySales({ cmpId, party, locked = false }) {
       if (selected[0]?.selectedPriceLevel && selected.every(sale => sale.selectedPriceLevel?._id === selected[0].selectedPriceLevel._id)) dispatch(setPriceLevel(selected[0].selectedPriceLevel));
       dispatch(resetPaymentSplit());
       setOpen(false);
-      toast.success("Sale items added. Saving will adjust available credit against the selected sales in selection order.");
+      toast.success("Sale items added. Saving will adjust this credit note against the selected sales only.");
     } catch (error) { toast.error(error.message); }
   };
   return <>

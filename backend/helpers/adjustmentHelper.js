@@ -7,42 +7,52 @@ import CreditNote from "../models/creditNoteModel.js";
 const money = value => Math.round((Number(value) + Number.EPSILON) * 100) / 100;
 const invalid = message => Object.assign(new Error(message), { statusCode: 400 });
 
-const isAutomatic = note => note.settlementMode === "automatic" ||
-  (note.settlementMode !== "selected" && !note.selectedSaleIds?.length);
-
-// Selected sales use selection order; standalone notes use oldest outstanding first.
 export async function settleCreditNoteSales(creditNote, selectedSaleIds, actor, session, reusable = []) {
-  selectedSaleIds = selectedSaleIds ?? [];
-  if (!Array.isArray(selectedSaleIds) || selectedSaleIds.some(id => !mongoose.isValidObjectId(id))) {
-    throw invalid("Invalid selected sales");
-  }
-  let ids = [...new Set(selectedSaleIds.map(String))];
-  const automatic = !ids.length && isAutomatic(creditNote);
-  if (!ids.length && !automatic) return [];
+  const sourceIds = selectedSaleIds ?? [];
+  if (!Array.isArray(sourceIds) || sourceIds.some(id => !mongoose.isValidObjectId(id))) throw invalid("Invalid selected sales");
   if (creditNote.party?.partyType !== "party") {
-    if (automatic) return [];
-    throw invalid("Adjustments require a customer account");
+    if (sourceIds.length) throw invalid("Adjustments require a customer account");
+    return [];
   }
+  if (!sourceIds.length) return [];
   const scope = { cmp_id: creditNote.cmp_id, Primary_user_id: creditNote.Primary_user_id };
-  const credit = await Tally.findOne({ ...scope, billId: String(creditNote._id), source: "creditNote", isCancelled: false }).session(session);
-  if (!credit) throw invalid("Credit note outstanding was not created");
-  if (automatic) {
-    const outstandingSales = await Tally.find({ ...scope, party_id: creditNote.party._id,
-      source: "sales", isCancelled: false, bill_pending_amt: { $gt: 0 },
-    }).sort({ bill_date: 1, _id: 1 }).session(session);
-    ids = [...new Set(outstandingSales.map(row => row.billId).filter(id => mongoose.isValidObjectId(id)).map(String))];
+  for (const sourceId of new Set(sourceIds.map(String))) {
+    const source = await Sales.findOne({ ...scope, _id: sourceId, "party._id": creditNote.party._id, isCancelled: false }).session(session);
+    if (!source) throw invalid("A selected sale is cancelled or does not belong to this customer/company");
   }
+  const postedCredit = await Tally.findOne({ ...scope, billId: String(creditNote._id), source: "creditNote", isCancelled: false }).session(session);
+  if (!postedCredit) throw invalid("Credit note outstanding was not created");
+  return allocateCreditToSales(creditNote, [...new Set(sourceIds.map(String))], actor, session, reusable);
+}
+
+export async function settleSaleCreditNotes(sale, actor, session) {
+  // Standalone sales leave credit available for explicit Receipt/Payment adjustment.
+  return [];
+}
+
+async function allocateCreditToSales(creditNote, ids, actor, session, reusable) {
+  const scope = { cmp_id: creditNote.cmp_id, Primary_user_id: creditNote.Primary_user_id };
+  const credit = await Tally.findOne({ ...scope, billId: String(creditNote._id), party_id: creditNote.party._id,
+    source: "creditNote", isCancelled: false,
+  }).session(session);
+  if (!credit || credit.bill_pending_amt >= 0) return [];
   const records = [];
   for (const id of ids) {
     const sale = await Sales.findOne({ ...scope, _id: id, "party._id": creditNote.party._id, isCancelled: false }).session(session);
     if (!sale) {
-      if (automatic) continue;
-      throw invalid("A selected sale is cancelled or does not belong to this customer/company");
+      continue;
     }
     const outstanding = await Tally.findOne({ ...scope, billId: id, party_id: creditNote.party._id, source: "sales", isCancelled: false }).session(session);
     // Paid sales can still supply returned items; they have no outstanding to allocate.
     if (!outstanding || outstanding.bill_pending_amt <= 0 || credit.bill_pending_amt >= 0) continue;
-    const amount = money(Math.min(outstanding.bill_pending_amt, -credit.bill_pending_amt));
+    const releasedRecord = reusable.find(row => String(row.saleId) === String(sale._id) && String(row.creditNoteId) === String(creditNote._id));
+    const previousRecord = releasedRecord || await Adjustment.findOne({ ...scope,
+      saleOutstandingId: outstanding._id, creditNoteOutstandingId: credit._id,
+    }).session(session);
+    const previouslyAllocated = !releasedRecord && previousRecord?.status === "active" ? money(previousRecord.allocatedAmount) : 0;
+    const sourceAllocation = creditNote.returnAllocations?.find(row => String(row.saleId) === id);
+    const limit = creditNote.returnAllocations?.length ? Math.max(0, Number(sourceAllocation?.amount || 0) - previouslyAllocated) : Infinity;
+    const amount = money(Math.min(outstanding.bill_pending_amt, -credit.bill_pending_amt, limit));
     if (amount <= 0) continue;
     outstanding.bill_pending_amt = money(outstanding.bill_pending_amt - amount);
     outstanding.adjustmentAmount = money((outstanding.adjustmentAmount || 0) + amount);
@@ -53,26 +63,22 @@ export async function settleCreditNoteSales(creditNote, selectedSaleIds, actor, 
     await outstanding.save({ session });
     await credit.save({ session });
     // One document per pair, including history, supports the original unique index.
-    let record = reusable.find(row => String(row.saleId) === String(sale._id) && String(row.creditNoteId) === String(creditNote._id));
-    if (!record) {
-      record = await Adjustment.findOne({ ...scope,
-        saleOutstandingId: outstanding._id, creditNoteOutstandingId: credit._id,
-      }).session(session);
-      if (record?.status === "active") throw new Error("This outstanding pair already has an active adjustment");
-    }
+    let record = previousRecord;
+    const releasedForEdit = Boolean(releasedRecord);
     if (record) {
+      const existingAllocation = !releasedForEdit && record.status === "active" ? money(record.allocatedAmount) : 0;
       record.history = record.history || [];
       record.history.push({
         allocatedAmount: record.allocatedAmount, createdBy: record.createdBy,
         status: "reversed", reversedAt: record.reversedAt || new Date(),
         reversedBy: record.reversedBy || actor,
-        reversalReason: record.reversalReason || "Voucher edited",
+        reversalReason: existingAllocation > 0 ? "Allocation increased" : record.reversalReason || "Voucher edited",
       });
       record.status = "active";
       record.reversedAt = undefined;
       record.reversedBy = undefined;
       record.reversalReason = undefined;
-      record.allocatedAmount = amount;
+      record.allocatedAmount = money(existingAllocation + amount);
       await record.save({ session });
     } else {
       [record] = await Adjustment.create([{
@@ -140,19 +146,12 @@ export async function beginAdjustmentEdit(voucher, party, company, actor, sessio
     return plan;
   }
   if (voucher.voucherType === "creditNote") {
-    if (isAutomatic(voucher)) return plan;
-    plan.saleIds = [...new Set([...(voucher.selectedSaleIds || []).map(String), ...records.map(row => String(row.saleId))])];
-    // A previously selected sale may have been cancelled since the note was saved.
-    if (!plan.saleIds.length) return plan;
-    const eligible = await Sales.find({ ...scope, _id: { $in: plan.saleIds }, "party._id": party._id, isCancelled: false }).session(session);
-    const ids = new Set(eligible.map(row => String(row._id)));
-    plan.saleIds = plan.saleIds.filter(id => ids.has(id));
-  } else if (voucher.voucherType === "sales") {
-    const candidates = await CreditNote.find({ ...scope, "party._id": party._id, isCancelled: false,
-    }).sort({ createdAt: 1, _id: 1 }).session(session);
-    const linkedNotes = new Set(records.map(row => String(row.creditNoteId)));
-    plan.notes = candidates.filter(note => isAutomatic(note) || linkedNotes.has(String(note._id)) ||
-      note.selectedSaleIds?.some(id => String(id) === String(voucher._id)));
+    plan.saleIds = [...new Set((voucher.selectedSaleIds || []).map(String))];
+  } else {
+    plan.notes = await CreditNote.find({ ...scope, "party._id": voucher.party._id,
+      isCancelled: false, selectedSaleIds: voucher._id,
+    }).sort({ date: 1, _id: 1 }).session(session);
+    plan.notes = plan.notes.filter(note => (note.selectedSaleIds || []).some(id => String(id) === String(voucher._id)));
   }
   return plan;
 }
@@ -160,9 +159,9 @@ export async function beginAdjustmentEdit(voucher, party, company, actor, sessio
 export async function finishAdjustmentEdit(voucher, plan, actor, session) {
   const used = new Set();
   if (plan.sameParty) {
-    const notes = voucher.voucherType === "creditNote" ? [voucher] : plan.notes;
-    for (const note of notes) {
-      const ids = voucher.voucherType === "creditNote" ? plan.saleIds : [String(voucher._id)];
+    const targets = voucher.voucherType === "creditNote"
+      ? [[voucher, plan.saleIds]] : plan.notes.map(note => [note, [String(voucher._id)]]);
+    for (const [note, ids] of targets) {
       const allocations = await settleCreditNoteSales(note, ids, actor, session, plan.records);
       for (const allocation of allocations) used.add(String(allocation._id));
     }

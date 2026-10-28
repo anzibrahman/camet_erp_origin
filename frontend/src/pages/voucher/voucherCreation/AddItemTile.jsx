@@ -1,4 +1,5 @@
 /* eslint-disable react/prop-types */
+import ReturnSourcesControl from "./ReturnSourcesControl";
 import { IoIosArrowDown, IoMdAdd } from "react-icons/io";
 import { MdCancel } from "react-icons/md";
 import { Link } from "react-router-dom";
@@ -80,13 +81,13 @@ function AddItemTile({
             {items.map((el, index) => (
               <div key={index}>
                 <div className="py-3 mt-0 px-5 md:px-6 bg-white flex items-center gap-1.5 md:gap-4">
-                  {!el?.hasGodownOrBatch && (
+                  {!el?.hasGodownOrBatch && !el._importedReturn && (
                     <div
                       onClick={() => {
                         dispatch(removeItem(el?._voucherLineId || el?._id));
                         dispatch(resetPaymentSplit());
                       }}
-                      className="text-gray-500 text-sm cursor-pointer"
+                      className={`text-gray-500 text-sm cursor-pointer ${el._importedReturn ? "hidden" : ""}`}
                     >
                       <MdCancel />
                     </div>
@@ -94,7 +95,7 @@ function AddItemTile({
                   <div className="flex-1">
                     <div className="flex justify-between font-bold text-xs gap-10 ">
                       <p className="text-[10px] sm:text-xs">
-                        {el.product_name}
+                        {el._importedReturn && <ReturnSourcesControl item={el} disabled={convertedFrom.length > 0} />} {el.product_name} {el._importedReturn && <span className="sales-import-return-badge">Return{el._returnSaved ? ` · ${el._returnNoteNumber}` : ""}</span>}
                       </p>
                       <p className="text-nowrap">
                         ₹{" "}
@@ -141,7 +142,7 @@ function AddItemTile({
 
                                   dispatch(resetPaymentSplit());
                                 }}
-                                className="text-gray-500 text-sm cursor-pointer"
+                                className={`text-gray-500 text-sm cursor-pointer ${el._importedReturn ? "hidden" : ""}`}
                               />
                               <div
                                 key={idx}
@@ -216,7 +217,7 @@ function AddItemTile({
                                     }}
                                     className={`
                                        ${
-                                         convertedFrom.length > 0 &&
+                                         (convertedFrom.length > 0 || el._importedReturn) &&
                                          "opacity-50 pointer-events-none"
                                        }
                                       text-violet-500 text-xs md:text-base font-bold p-1 px-4 border border-1 border-gray-300 rounded-2xl cursor-pointer`}
@@ -263,7 +264,7 @@ function AddItemTile({
                               });
                             }}
                             className={` ${
-                              convertedFrom.length > 0 &&
+                              (convertedFrom.length > 0 || el._importedReturn) &&
                               "opacity-50 pointer-events-none"
                             } text-violet-500 text-xs md:text-base font-bold p-1 px-4 border border-1 border-gray-300 rounded-2xl cursor-pointer`}
                           >

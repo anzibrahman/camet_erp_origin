@@ -19,6 +19,9 @@ const creditNoteSchema = new Schema(
     convertedFrom: { type: Array, default: [] },
     settlementMode: { type: String, enum: ["automatic", "selected"] },
     selectedSaleIds: [{ type: Schema.Types.ObjectId, ref: "Sales" }],
+    returnAllocations: [{ _id: false, saleId: { type: Schema.Types.ObjectId, ref: "Sales" }, amount: Number,
+      products: [{ _id: false, productId: { type: Schema.Types.ObjectId, ref: "Product" }, quantity: Number, amount: Number }] }],
+    returnSourceSaleIds: [{ type: Schema.Types.ObjectId, ref: "Sales" }],
     serialNumber: { type: Number },
     userLevelSerialNumber: { type: Number },
     creditNoteNumber: {

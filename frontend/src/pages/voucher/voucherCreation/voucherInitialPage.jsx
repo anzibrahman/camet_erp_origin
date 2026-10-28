@@ -1,3 +1,5 @@
+import { salesReturnDisplayItems, salesTransactionSubmission } from "./salesReturnDraft";
+import SalesCustomerImport from "./SalesCustomerImport";
 import CreditNotePartySales from "./CreditNotePartySales";
 import { voucherCancelEndpoint } from "../../../../utils/voucherEndpoints";
 /* eslint-disable react/no-unescaped-entities */
@@ -25,6 +27,7 @@ import {
   addVoucherNumber,
   addParty,
   setItem,
+  setSalesReturnNotes,
   setAdditionalCharges,
   setPriceLevel,
   addDespatchDetails,
@@ -67,6 +70,9 @@ function VoucherInitialPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const isMounted = useRef(true);
+  const salesSubmissionRef = useRef(null);
+  const transactionSavingRef = useRef(false);
+  const [lastSavedTransaction, setLastSavedTransaction] = useState(null);
   const queryClient = useQueryClient();
   const [desktopViewport, setDesktopViewport] = useState(() => window.matchMedia("(min-width: 1024px)").matches);
   useEffect(() => {
@@ -139,6 +145,7 @@ function VoucherInitialPage() {
     additionalCharges: additionalChargesFromRedux = [],
     convertedFrom = [],
     selectedSaleIds = [],
+    salesReturnNotes = [],
     stockTransferToGodown,
     mode,
     voucherSeries: voucherSeriesFromRedux,
@@ -148,6 +155,10 @@ function VoucherInitialPage() {
     paymentSplittingData: paymentSplittingDataFromRedux,
     id: idFromRedux,
   } = useSelector((state) => state.commonVoucherSlice);
+
+  const displayItems = useMemo(() => voucherTypeFromRedux === "sales"
+    ? salesReturnDisplayItems(items, salesReturnNotes, party?._id) : items,
+  [items, salesReturnNotes, party?._id, voucherTypeFromRedux]);
 
   const getApiEndPoint = () => {
     if (voucherTypeFromRedux) {
@@ -418,6 +429,13 @@ function VoucherInitialPage() {
     }
   };
   const submitHandler = async () => {
+    if (transactionSavingRef.current) return;
+    const pendingReturns = voucherTypeFromRedux === "sales" ? salesReturnNotes.filter(note => note.status === "pending") : [];
+    const combinedSalesSave = voucherTypeFromRedux === "sales" && mode !== "edit";
+    if (pendingReturns.length && !combinedSalesSave) {
+      toast.error("Add returns when creating a new sale, rather than editing an existing sale.");
+      return;
+    }
     // Validation
     if (
       Object.keys(party).length === 0 &&
@@ -435,19 +453,19 @@ function VoucherInitialPage() {
       return;
     }
 
-    if (items.length === 0) {
+    if (items.length === 0 && !pendingReturns.length) {
       toast.error("Add at least an item");
       return;
     }
 
-    if (!selectedVoucherSeriesFromRedux?._id) {
+    if (items.length > 0 && !selectedVoucherSeriesFromRedux?._id) {
       toast.error(
         "Error with your voucher series. Please select a valid series."
       );
       return;
     }
 
-    if (openAdditionalTile) {
+    if (openAdditionalTile && items.length > 0) {
       const hasEmptyValue = additionalChargesFromRedux.some(
         (row) => row.value === ""
       );
@@ -467,6 +485,7 @@ function VoucherInitialPage() {
       }
     }
 
+    transactionSavingRef.current = true;
     setSubmitLoading(true);
     const voucherNumberTitle = getVoucherNumberTitle();
 
@@ -514,7 +533,11 @@ function VoucherInitialPage() {
 
       // console.log(formData);
 
-      const endPoint = getApiEndPoint();
+      const endPoint = combinedSalesSave ? "createSalesTransaction" : getApiEndPoint();
+      if (combinedSalesSave) {
+        salesSubmissionRef.current = salesTransactionSubmission(formData, salesReturnNotes, salesSubmissionRef.current);
+        formData = salesSubmissionRef.current.payload;
+      }
       let params = {};
       if (voucherTypeFromRedux === "vanSale") {
         params = {
@@ -532,7 +555,15 @@ function VoucherInitialPage() {
       );
 
       toast.success(res.data.message);
-      if (desktopSales) {
+      if (combinedSalesSave) {
+        const result = res.data.data;
+        const savedNotes = salesReturnNotes.filter(note => note.status === "saved");
+        if (result.creditNote) savedNotes.push({ key: formData.transactionId, partyId: party._id, status: "saved", id: result.creditNote._id, number: result.creditNote.creditNoteNumber, items: pendingReturns.flatMap(note => note.items) });
+        handleDesktopTransactionSaved();
+        if (savedNotes.length) { dispatch(addParty(party)); dispatch(setSalesReturnNotes(savedNotes)); }
+        setLastSavedTransaction(result);
+        salesSubmissionRef.current = null;
+      } else if (desktopSales) {
         handleDesktopTransactionSaved();
       } else {
         navigate(`/sUsers/${voucherTypeFromRedux}Details/${res.data.data._id}`, {
@@ -547,6 +578,7 @@ function VoucherInitialPage() {
       toast.error(error.response?.data?.message || "Error creating sale");
       console.log(error);
     } finally {
+      transactionSavingRef.current = false;
       setSubmitLoading(false);
     }
   };
@@ -564,7 +596,7 @@ function VoucherInitialPage() {
           loading={isLoading || submitLoading}
         />
 
-        <div className={`sales-workspace ${isLoading ? "pointer-events-none opacity-70" : ""}`}>
+        <div className={`sales-workspace ${isLoading || submitLoading ? "pointer-events-none opacity-70" : ""}`}>
           <div className="sales-form">
           {/* invoiec date */}
 
@@ -606,7 +638,13 @@ function VoucherInitialPage() {
             />
           )}
           {desktopSales && ["sales", "creditNote", "saleOrder", "performaInvoice"].includes(voucherTypeFromRedux) && <div className="sales-party-values"><DesktopPriceLevel cmpId={cmp_id} locked={convertedFrom.length > 0} /></div>}
+          {voucherTypeFromRedux === "sales" && lastSavedTransaction && <p className="sales-transaction-result" role="status">
+            Last saved: {[lastSavedTransaction.sale && `Sale ${lastSavedTransaction.sale.salesNumber}`, lastSavedTransaction.creditNote && `Credit Note ${lastSavedTransaction.creditNote.creditNoteNumber}`].filter(Boolean).join(" · ")}
+            {" · Outstanding ₹ "}{Number(lastSavedTransaction.outstanding?.net || 0).toFixed(2)}
+          </p>}
           </div>
+
+          {!desktopSales && voucherTypeFromRedux === "sales" && party?._id && <SalesCustomerImport key={`${cmp_id}:${party._id}`} cmpId={cmp_id} party={party} locked={convertedFrom.length > 0} />}
 
           {!desktopSales && voucherTypeFromRedux === "creditNote" && party?._id && <CreditNotePartySales key={party?._id || "none"} cmpId={cmp_id} party={party} locked={convertedFrom.length > 0} />}
 
@@ -618,8 +656,8 @@ function VoucherInitialPage() {
 
           {/* adding items */}
 
-          {desktopSales ? <DesktopSalesItems items={items} convertedFrom={convertedFrom} voucherType={voucherTypeFromRedux} /> : <AddItemTile
-            items={items}
+          {desktopSales ? <DesktopSalesItems items={displayItems} convertedFrom={convertedFrom} voucherType={voucherTypeFromRedux} /> : <AddItemTile
+            items={displayItems}
             handleAddItem={handleAddItem}
             dispatch={dispatch}
             removeItem={removeItem}

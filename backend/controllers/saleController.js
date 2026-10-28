@@ -168,11 +168,13 @@ export const createSale = async (req, res) => {
       );
     }
 
-    // throw new Error("Payment splitting data is missing");
+    const adjustments = [];
+
     await session.commitTransaction();
     res.status(201).json({
       success: true,
       data: result,
+      adjustments,
       message: "Sale created successfully",
     });
   } catch (error) {

@@ -1,3 +1,4 @@
+import SalesCustomerImport from "./SalesCustomerImport";
 import DebitNotePartyPurchases from "./DebitNotePartyPurchases";
 import CreditNotePartySales from "./CreditNotePartySales";
 /* eslint-disable react/prop-types */
@@ -83,7 +84,9 @@ export default function DesktopPartySearch({ cmpId, party, locked, voucherType =
       menuPortalTarget={document.body} menuPosition="fixed" maxMenuHeight={240}
       styles={{ menuPortal: base => ({ ...base, zIndex: 9999 }), control: base => ({ ...base, fontSize: 12, minHeight: 30 }), valueContainer: base => ({ ...base, padding: "0 6px" }), indicatorsContainer: base => ({ ...base, height: 28 }), option: base => ({ ...base, fontSize: 12, padding: "7px 10px" }) }}
     />
-    </div></div>
+    </div>
+    {voucherType === "sales" && party?._id && <SalesCustomerImport key={`${cmpId}:${party._id}`} cmpId={cmpId} party={party} locked={locked} />}
+    </div>
     {party?._id && <div className="desktop-party-actions">
       <Link to={`/sUsers/billTo${billToVoucher}/${party._id}`}><span>Bill To address</span></Link>
     </div>}
