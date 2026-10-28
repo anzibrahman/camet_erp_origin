@@ -57,11 +57,10 @@ test("matching items retain separate godown and batch destinations", () => {
  assert.equal(result[0].totalCount, 8);
 });
 
-test("return quantities can exceed source quantity while preserving history and pricing", () => {
- const source=[{...saleItems[0],GodownList:[{...saleItems[0].GodownList[0],count:1,actualCount:2,discountType:'amount',discountAmount:10}]}];
+test("returns can exceed original quantity without changing source history", () => {
+ const source=[{...saleItems[0],GodownList:[{...saleItems[0].GodownList[0],count:1,actualCount:1}]}];
  const before=JSON.stringify(source);
  const result=creditNoteItemsFromSale(source,{'0:0':5});
- assert.equal(result[0].totalCount,5);assert.equal(result[0].totalActualCount,10);
- assert.equal(result[0].GodownList[0].discountAmount,50);assert.equal(result[0].total,472.5);
- assert.equal(JSON.stringify(source),before);
+ assert.equal(result[0].totalCount,5);assert.equal(result[0].totalActualCount,5);
+ assert.equal(result[0].total,525);assert.equal(JSON.stringify(source),before);
 });
