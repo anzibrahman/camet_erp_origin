@@ -38,17 +38,19 @@ function VoucherPdfInitiator() {
   let voucherType = null;
   const params = {};
 
-  if (pathname.includes("/sUsers/sharesales/")) {
+  if (pathname.toLowerCase().includes("/susers/shareperformainvoice/")) {
+    voucherType = "performaInvoice";
+  } else if (pathname.toLowerCase().includes("/susers/sharesales/")) {
     voucherType = "sales";
-  } else if (pathname.includes("/sUsers/sharepurchase/")) {
+  } else if (pathname.toLowerCase().includes("/susers/sharepurchase/")) {
     voucherType = "purchase";
-  } else if (pathname.includes("/sUsers/sharesaleOrder/")) {
+  } else if (pathname.toLowerCase().includes("/susers/sharesaleorder/")) {
     voucherType = "saleOrder";
-  } else if (pathname.includes("/sUsers/sharecreditNote/")) {
+  } else if (pathname.toLowerCase().includes("/susers/sharecreditnote/")) {
     voucherType = "creditNote";
-  } else if (pathname.includes("/sUsers/sharedebitNote/")) {
+  } else if (pathname.toLowerCase().includes("/susers/sharedebitnote/")) {
     voucherType = "debitNote";
-  } else if (pathname.includes("/sUsers/sharevanSale/")) {
+  } else if (pathname.toLowerCase().includes("/susers/sharevansale/")) {
     voucherType = "sales";
     params.vanSale = true;
   }

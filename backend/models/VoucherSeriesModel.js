@@ -22,6 +22,7 @@ const VoucherSeriesSchema = new mongoose.Schema(
       enum: [
         "sales",
         "saleOrder",
+    "performaInvoice",
         "vanSale",
         "purchase",
         "creditNote",

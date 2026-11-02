@@ -34,6 +34,7 @@ const AllocateVoucherSeries = () => {
   // Voucher type display names
   const voucherTypeNames = {
     sales: "Sale",
+    performaInvoice: "Proforma Invoice",
     purchase: "Purchase",
     vanSale: "Van Sale",
     receipt: "Receipt",

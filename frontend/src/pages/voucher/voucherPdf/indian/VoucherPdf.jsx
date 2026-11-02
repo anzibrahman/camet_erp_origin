@@ -25,7 +25,7 @@ function VoucherPdf({
   const getVoucherType = () => {
     const currentVoucherType = data?.voucherType;
 
-    if (currentVoucherType === "sales" || currentVoucherType === "vanSale") {
+    if (currentVoucherType === "sales" || currentVoucherType === "vanSale" || currentVoucherType === "performaInvoice") {
       return "sale";
     } else if (currentVoucherType === "saleOrder") {
       return "saleOrder";

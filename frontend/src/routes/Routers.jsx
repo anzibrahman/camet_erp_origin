@@ -1,5 +1,6 @@
 import { Route, Routes } from "react-router-dom";
 import { lazy, Suspense } from "react";
+const ProformaInvoicePage = lazy(() => import("../pages/voucher/voucherCreation/ProformaInvoicePage"));
 const ProtectedSecRoute = lazy(() => import("./ProtectedSecRoute"));
 import SuspenseLoader from "@/components/common/SuspenseLoader";
 import { ErrorTestComponent } from "@/components/errorBoundaries/ErrorTestComponent";
@@ -704,6 +705,12 @@ const Routers = () => {
           }
         ></Route>
 
+        <Route path="/sUsers/performaInvoice" element={<ProtectedSecRoute><ProformaInvoicePage /></ProtectedSecRoute>} />
+        <Route path="/sUsers/searchPartyperformaInvoice" element={<ProtectedSecRoute><SearchParty /></ProtectedSecRoute>} />
+        <Route path="/sUsers/performaInvoiceDetails/:id" element={<ProtectedSecRoute><VoucherDetails /></ProtectedSecRoute>} />
+        <Route path="/sUsers/editperformaInvoice/:id" element={<ProtectedSecRoute><ProformaInvoicePage /></ProtectedSecRoute>} />
+        <Route path="/sUsers/shareperformaInvoice/:id" element={<ProtectedSecRoute><VoucherPdfInitiator /></ProtectedSecRoute>} />
+        <Route path="/sUsers/shareperformaInvoiceThreeInch/:id" element={<ProtectedSecRoute><VoucherPdfInitiatorThreeInch /></ProtectedSecRoute>} />
         <Route
           path="/sUsers/sales"
           element={

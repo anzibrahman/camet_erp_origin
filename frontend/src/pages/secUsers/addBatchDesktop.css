@@ -1,0 +1,23 @@
+@media (min-width: 1024px) {
+  .batch-add-page { min-height: 100%; background: #f8fafc; }
+  .batch-add-page .batch-add-form { min-height: calc(100vh - 72px); justify-content: flex-start; background: transparent; padding: 24px 32px 40px; }
+  .batch-add-page .batch-add-shell { width: 100%; max-width: 920px; margin: 0 auto; padding: 0; }
+  .batch-add-page .batch-add-card { margin: 0; padding: 0; border: 1px solid #dbe3ed; border-radius: 8px; box-shadow: 0 2px 8px rgb(15 23 42 / 8%); }
+  .batch-add-page .batch-add-content { max-width: 780px; margin: 0 auto; padding: 24px 28px 28px; }
+  .batch-add-page .batch-add-content > .flex:first-child { margin: -24px -28px 18px; padding: 18px 28px; border-bottom: 1px solid #e2e8f0; }
+  .batch-add-page .batch-add-content > .flex:first-child .h-14 { width: 40px; height: 40px; font-size: 18px; }
+  .batch-add-page .batch-add-content > .flex:first-child h2 { font-size: 17px; line-height: 22px; }
+  .batch-add-page .batch-add-content > .flex:first-child p { font-size: 12px; line-height: 18px; }
+  .batch-add-page .divide-y { border: 0; }
+  .batch-add-page .divide-y > div:first-child { padding: 4px 0 20px; font-size: 13px; line-height: 18px; }
+  .batch-add-page label { color: #334155; font-size: 12px; font-weight: 600; line-height: 20px; }
+  .batch-add-page input, .batch-add-page select { min-height: 36px; padding: 7px 10px; border-color: #cbd5e1; border-radius: 4px; font-size: 13px; }
+  .batch-add-page .react-datepicker-wrapper, .batch-add-page .react-datepicker-wrapper input { width: 100%; }
+  .batch-add-page .divide-y > div:first-child > .flex-col { margin-bottom: 4px; }
+  .batch-add-page .divide-y > div:first-child > .flex { gap: 16px; }
+  .batch-add-page .bg-slate-200 { margin-top: 8px; padding: 14px 16px; border: 1px solid #dbe3ed; border-radius: 5px; background: #f8fafc; }
+  .batch-add-page .pt-4 { justify-content: flex-end; padding-top: 18px; }
+  .batch-add-page .pt-4 button { width: 132px; min-height: 36px; padding: 7px 12px; font-size: 13px; }
+  .batch-add-page .pt-4 button:first-child { border: 1px solid #cbd5e1; border-radius: 4px; }
+  .batch-add-page .pt-4 button svg { width: 16px; height: 16px; margin-right: 6px; }
+}

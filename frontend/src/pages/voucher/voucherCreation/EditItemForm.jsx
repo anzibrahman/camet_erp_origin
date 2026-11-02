@@ -16,7 +16,7 @@ import {
   isExpiryValid,
 } from "../../../../../backend/utils/dateHelpers";
 
-function EditItemForm({ ItemsFromRedux, from, taxInclusive = false, loading }) {
+function EditItemForm({ ItemsFromRedux, from, taxInclusive = false, loading, itemId, godownIndex, onClose }) {
   const [item, setItem] = useState([]);
   const [newPrice, setNewPrice] = useState("");
   const [quantity, setQuantity] = useState("");
@@ -62,8 +62,9 @@ function EditItemForm({ ItemsFromRedux, from, taxInclusive = false, loading }) {
   const [igstValue, setIgstValue] = useState(0);
   const [individualTotal, setIndividualTotal] = useState(0);
 
-  const { id } = useParams();
-  let { index } = useParams();
+  const params = useParams();
+  const id = itemId ?? params.id;
+  let index = godownIndex ?? params.index;
   if (
     index === undefined ||
     index === null ||
@@ -75,7 +76,7 @@ function EditItemForm({ ItemsFromRedux, from, taxInclusive = false, loading }) {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const selectedItem = ItemsFromRedux.filter((el) => el._id === id);
+  const selectedItem = ItemsFromRedux.filter((el) => (el._voucherLineId || el._id) === id);
   const selectedGodown =
     index !== "null"
       ? selectedItem[0]?.GodownList[index]
@@ -97,8 +98,11 @@ function EditItemForm({ ItemsFromRedux, from, taxInclusive = false, loading }) {
     showDescription,
   } = configuration || {};
 
+  const showActualQuantity = enableActualAndBilledQuantity || item?.batchEnabled === true;
+
   const normalizedVoucherType = {
     sales: "sale",
+    performaInvoice: "sale",
     saleOrder: "saleOrder",
   }[voucherTypeFromRedux];
 
@@ -234,7 +238,7 @@ function EditItemForm({ ItemsFromRedux, from, taxInclusive = false, loading }) {
         addlCessAmt: Number(additionalCessAmount?.toFixed(2)),
         individualTotal: Number(individualTotal?.toFixed(2)),
         quantity: Number(quantity?.toFixed(2)),
-        taxInclusive: Boolean(taxInclusive),
+        taxInclusive: Boolean(item?.isTaxInclusive),
       });
     });
 
@@ -269,7 +273,7 @@ function EditItemForm({ ItemsFromRedux, from, taxInclusive = false, loading }) {
       setDescription(selectedGodown?.description || "");
       setWarrantyCard(selectedGodown?.warrantyCard || null);
 
-      if (enableActualAndBilledQuantity) {
+      if (enableActualAndBilledQuantity || selectedItem[0]?.batchEnabled) {
         setActualQuantity(
           selectedGodown?.actualCount || selectedGodown?.count || 1
         );
@@ -325,11 +329,9 @@ function EditItemForm({ ItemsFromRedux, from, taxInclusive = false, loading }) {
 
     // log
 
-    if (taxInclusive) {
-      setIsTaxInclusive(
-        selectedGodown?.isTaxInclusive || selectedItem[0]?.taxInclusive
-      );
-    }
+    setIsTaxInclusive(Boolean(
+      selectedItem[0]?.isTaxInclusive ?? selectedGodown?.isTaxInclusive ?? selectedItem[0]?.taxInclusive ?? false
+    ));
   }, [selectedItem[0], enableActualAndBilledQuantity]);
 
   useEffect(() => {
@@ -396,12 +398,13 @@ function EditItemForm({ ItemsFromRedux, from, taxInclusive = false, loading }) {
   ]);
 
   const handleBackClick = () => {
-    navigate(-1);
+    if (onClose) onClose();
+    else navigate(-1);
   };
 
   const handleDirectQuantityChange = (value) => {
     if (
-      enableActualAndBilledQuantity &&
+      showActualQuantity &&
       Number(value) > Number(actualQuantity)
     ) {
       return;
@@ -700,7 +703,8 @@ function EditItemForm({ ItemsFromRedux, from, taxInclusive = false, loading }) {
     // Uncomment these lines when ready to dispatch the action
     dispatch(updateItem({ item: updatedItem, moveToTop: false }));
     dispatch(resetPaymentSplit());
-    navigate(-1, { replace: true });
+    if (onClose) onClose();
+    else navigate(-1, { replace: true });
   };
 
 
@@ -710,12 +714,12 @@ function EditItemForm({ ItemsFromRedux, from, taxInclusive = false, loading }) {
   return (
     <div>
       <div className=" flex-1">
-        <TitleDiv title="Edit Item" loading={loading} />
-        <div className="min-h-screen bg-gray-100 flex flex-col justify-center">
-          <div className="relative md:py-4 sm:max-w-xl sm:mx-auto">
-            <div className="relative px-4 py-10 bg-white mx-5 md:mx-0 shadow sm:p-10">
+        {!onClose && <TitleDiv title="Edit Item" loading={loading} />}
+        <div className={`${onClose ? "" : "min-h-screen"} bg-gray-100 flex flex-col justify-center`}>
+          <div className="edit-item-shell relative md:py-4 sm:max-w-xl sm:mx-auto">
+            <div className="edit-item-card relative px-4 py-10 bg-white mx-5 md:mx-0 shadow sm:p-10">
               <div className="max-w-md mx-auto">
-                <div className="flex items-center space-x-5">
+                <div className="edit-item-heading flex items-center space-x-5">
                   <div className="h-14 w-14 bg-yellow-200 rounded-full flex flex-shrink-0 justify-center items-center text-yellow-500 text-2xl font-mono">
                     <MdModeEditOutline />
                   </div>
@@ -727,7 +731,7 @@ function EditItemForm({ ItemsFromRedux, from, taxInclusive = false, loading }) {
                   </div>
                 </div>
                 <div className="divide-y divide-gray-200">
-                  <div className="py-8 text-base leading-6 space-y-4 text-gray-700 sm:text-md sm:leading-7">
+                  <div className="edit-item-fields py-8 text-base leading-6 space-y-4 text-gray-700 sm:text-md sm:leading-7">
                     <div className="flex flex-col">
                       <label className="leading-loose">Price</label>
                       <input
@@ -745,7 +749,7 @@ function EditItemForm({ ItemsFromRedux, from, taxInclusive = false, loading }) {
                       />
                     </div>
 
-                    {taxInclusive &&
+                    {from !== "stockTransfer" &&
                       isTaxInclusive !== null &&
                       isTaxInclusive !== undefined && (
                         <div className="flex items-center gap-3 ml-1">
@@ -767,16 +771,16 @@ function EditItemForm({ ItemsFromRedux, from, taxInclusive = false, loading }) {
                         </div>
                       )}
                     <div
-                      className={`grid grid-cols-1 ${
-                        enableActualAndBilledQuantity
+                      className={`edit-item-quantities grid grid-cols-1 ${
+                        showActualQuantity
                           ? "sm:grid-cols-1"
                           : "sm:grid-cols-2"
                       } gap-4`}
                     >
-                      <div className="flex flex-row-reverse gap-8">
+                      <div className="edit-item-quantity-values flex flex-row-reverse gap-8">
                         <div className="flex flex-col">
                           <label className="leading-loose">
-                            {enableActualAndBilledQuantity
+                            {showActualQuantity
                               ? "Billed Quantity"
                               : "Quantity"}
                           </label>
@@ -793,7 +797,7 @@ function EditItemForm({ ItemsFromRedux, from, taxInclusive = false, loading }) {
                           </div>
                         </div>
 
-                        {enableActualAndBilledQuantity && (
+                        {showActualQuantity && (
                           <div className="flex flex-col">
                             <label className="leading-loose">
                               Actual Quantity
@@ -826,7 +830,7 @@ function EditItemForm({ ItemsFromRedux, from, taxInclusive = false, loading }) {
                       </div>
                     </div>
 
-                    <div className="flex items-center space-x-4">
+                    <div className="edit-item-discount flex items-center space-x-4">
                       <div className="flex flex-col">
                         <label className="leading-loose">Discount</label>
                         <div className="relative focus-within:text-gray-600 text-gray-400">
@@ -880,7 +884,7 @@ function EditItemForm({ ItemsFromRedux, from, taxInclusive = false, loading }) {
                       </button>
                     </div>
 
-                    <div className="flex flex-col sm:flex-row gap-4">
+                    <div className="edit-item-dates flex flex-col sm:flex-row gap-4">
                       {enableManufacturingDate &&
                         item?.batchEnabled &&
                         selectedGodown?.mfgdt &&
@@ -965,7 +969,7 @@ function EditItemForm({ ItemsFromRedux, from, taxInclusive = false, loading }) {
                       />
                     </div>
 
-                    <div className="bg-slate-200 p-3 font-semibold flex flex-col gap-2 text-gray-500">
+                    <div className="edit-item-summary bg-slate-200 p-3 font-semibold flex flex-col gap-2 text-gray-500">
                       <div className="flex justify-between">
                         <p className="text-xs">Base Price</p>
                         <p className="text-xs">₹ {basePrice?.toFixed(2)}</p>
@@ -1053,7 +1057,7 @@ function EditItemForm({ ItemsFromRedux, from, taxInclusive = false, loading }) {
                       </div>
                     </div>
                   </div>
-                  <div className="pt-4 flex items-center space-x-4">
+                  <div className="edit-item-actions pt-4 flex items-center space-x-4">
                     <button
                       onClick={handleBackClick}
                       className="flex justify-center items-center w-full text-gray-900 px-4 py-3 rounded-md focus:outline-none"

@@ -78,8 +78,8 @@ const Layout = ({ children }) => {
 
   return (
     <SidebarContext.Provider value={{ showSidebar, handleToggleSidebar }}>
-      <div className="flex h-screen w-screen overflow-hidden"> 
-        {renderSidebar()}
+      <div className="app-layout flex h-screen w-screen overflow-hidden">
+        <div className="app-sidebar contents">{renderSidebar()}</div>
         <div className="flex-1 flex flex-col min-w-0">
           {renderHeader()}
           <main className={`${isAdmin ? "bg-slate-100" : ""}  flex-1 overflow-y-auto overflow-x-auto`}>

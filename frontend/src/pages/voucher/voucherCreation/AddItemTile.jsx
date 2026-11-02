@@ -80,13 +80,13 @@ function AddItemTile({
             {items.map((el, index) => (
               <div key={index}>
                 <div className="py-3 mt-0 px-5 md:px-6 bg-white flex items-center gap-1.5 md:gap-4">
-                  {!el?.hasGodownOrBatch && (
+                  {!el?.hasGodownOrBatch && !el._importedReturn && (
                     <div
                       onClick={() => {
-                        dispatch(removeItem(el?._id));
+                        dispatch(removeItem(el?._voucherLineId || el?._id));
                         dispatch(resetPaymentSplit());
                       }}
-                      className="text-gray-500 text-sm cursor-pointer"
+                      className={`text-gray-500 text-sm cursor-pointer ${el._importedReturn ? "hidden" : ""}`}
                     >
                       <MdCancel />
                     </div>
@@ -94,7 +94,7 @@ function AddItemTile({
                   <div className="flex-1">
                     <div className="flex justify-between font-bold text-xs gap-10 ">
                       <p className="text-[10px] sm:text-xs">
-                        {el.product_name}
+                        {el.product_name} {el._importedReturn && <span className="sales-import-return-badge">Return{el._returnSaved ? ` · ${el._returnNoteNumber}` : ""}</span>}
                       </p>
                       <p className="text-nowrap">
                         ₹{" "}
@@ -134,14 +134,14 @@ function AddItemTile({
                                 onClick={() => {
                                   dispatch(
                                     removeGodownOrBatch({
-                                      id: el?._id,
+                                      id: el?._voucherLineId || el?._id,
                                       idx: idx,
                                     })
                                   );
 
                                   dispatch(resetPaymentSplit());
                                 }}
-                                className="text-gray-500 text-sm cursor-pointer"
+                                className={`text-gray-500 text-sm cursor-pointer ${el._importedReturn ? "hidden" : ""}`}
                               />
                               <div
                                 key={idx}
@@ -208,7 +208,7 @@ function AddItemTile({
                                   <p
                                     onClick={() => {
                                       navigate(
-                                        `${urlToEditItem}/${el._id}/${idx}`,
+                                        `${urlToEditItem}/${el._voucherLineId || el._id}/${idx}`,
                                         {
                                           state: { from: type },
                                         }
@@ -216,7 +216,7 @@ function AddItemTile({
                                     }}
                                     className={`
                                        ${
-                                         convertedFrom.length > 0 &&
+                                         (convertedFrom.length > 0 || el._importedReturn) &&
                                          "opacity-50 pointer-events-none"
                                        }
                                       text-violet-500 text-xs md:text-base font-bold p-1 px-4 border border-1 border-gray-300 rounded-2xl cursor-pointer`}
@@ -258,12 +258,12 @@ function AddItemTile({
                         <div className="flex items-center gap-2">
                           <p
                             onClick={() => {
-                              navigate(`${urlToEditItem}/${el._id}/null`, {
+                              navigate(`${urlToEditItem}/${el._voucherLineId || el._id}/null`, {
                                 state: { from: "sales" },
                               });
                             }}
                             className={` ${
-                              convertedFrom.length > 0 &&
+                              (convertedFrom.length > 0 || el._importedReturn) &&
                               "opacity-50 pointer-events-none"
                             } text-violet-500 text-xs md:text-base font-bold p-1 px-4 border border-1 border-gray-300 rounded-2xl cursor-pointer`}
                           >

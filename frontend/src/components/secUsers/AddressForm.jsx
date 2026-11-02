@@ -16,7 +16,7 @@ import { BsPersonPlusFill } from "react-icons/bs";
  * @param {Function} props.getFormData - Callback function to pass form data to parent
  * @param {boolean} props.showShipTo - Flag to control visibility of shipping section
  */
-function AddressForm({ getFormData, showShipTo = true , setLoading,loading}) {
+function AddressForm({ getFormData, showShipTo = true, setLoading, loading, desktopLayout = false }) {
   // ================ STATE MANAGEMENT ================
   const [formData, setFormData] = useState({
     billToName: "",
@@ -329,7 +329,7 @@ function AddressForm({ getFormData, showShipTo = true , setLoading,loading}) {
 
 
   return (
-    <div className={` ${loading && "animate-pulse pointer-events-none opacity-80"}  flex gap-6  md:px-10 pb-10`} >
+    <div className={`address-form ${desktopLayout ? "address-form-desktop" : ""} ${loading && "animate-pulse pointer-events-none opacity-80"} flex gap-6 md:px-10 pb-10`} >
       <div className="w-full  ">
         <div className="mt-5   shadow-lg p-3 sm:p-6 border">
           <div className="flex">

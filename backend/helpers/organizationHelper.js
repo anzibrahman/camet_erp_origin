@@ -6,6 +6,7 @@ export const createDefaultVoucherSeries = async ({ companyId, ownerId, session }
   const voucherTypes = [
     "sales",
     "saleOrder",
+    "performaInvoice",
     "vanSale",
     "purchase",
     "creditNote",

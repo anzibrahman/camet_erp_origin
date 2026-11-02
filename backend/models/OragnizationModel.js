@@ -168,6 +168,7 @@ const organizationSchema = new mongoose.Schema(
             letterHeadPublicId: { type: String, default: null },
             letterHeadUploadedAt: { type: Date, default: null },
             showUnit: { type: Boolean, default: false },
+            printFormat: { type: String, enum: ["a4", "thermal"], default: "a4" },
           },
         ],
 

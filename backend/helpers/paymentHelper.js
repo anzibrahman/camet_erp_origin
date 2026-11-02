@@ -142,7 +142,8 @@ export const updateTallyData = async (
       doc?.source,
       doc?.bill_amount || 0,
       existingAppliedReceiptsTotal,
-      totalAppliedPayments
+      totalAppliedPayments,
+      doc?.adjustmentAmount || 0
     );
 
     console.log("balance", balance);
@@ -245,7 +246,8 @@ export const revertTallyUpdates = async (
         doc?.source,
         doc?.bill_amount || 0,
         totalAppliedReceipts,
-        totalAppliedPayments
+        totalAppliedPayments,
+        doc?.adjustmentAmount || 0
       );
 
       const newClassification = newPendingAmount < 0 ? "Cr" : "Dr";

@@ -31,7 +31,7 @@ function VoucherThreeInchPdf({
   const voucherType = data?.voucherType;
   const getVoucherNumber = () => {
     if (!voucherType) return "";
-    if (voucherType === "sales" || voucherType === "vanSale") {
+    if (voucherType === "sales" || voucherType === "vanSale" || voucherType === "performaInvoice") {
       return "salesNumber";
     } else if (voucherType === "saleOrder") {
       return "orderNumber";
@@ -45,7 +45,7 @@ function VoucherThreeInchPdf({
   const getConfigurationVoucherType = () => {
     const currentVoucherType = data?.voucherType;
 
-    if (currentVoucherType === "sales" || currentVoucherType === "vanSale") {
+    if (currentVoucherType === "sales" || currentVoucherType === "vanSale" || currentVoucherType === "performaInvoice") {
       return "sale";
     } else if (currentVoucherType === "saleOrder") {
       return "saleOrder";
@@ -224,7 +224,7 @@ function VoucherThreeInchPdf({
                   letterSpacing: "1px",
                 }}
               >
-                {configurations?.printTitle || ""}
+                {data?.voucherType === "performaInvoice" ? "PROFORMA INVOICE" : configurations?.printTitle || ""}
               </div>
             </div>
           )}
@@ -311,7 +311,7 @@ function VoucherThreeInchPdf({
                       letterSpacing: "1px",
                     }}
                   >
-                    {configurations?.printTitle || ""}
+                    {data?.voucherType === "performaInvoice" ? "PROFORMA INVOICE" : configurations?.printTitle || ""}
                   </div>
                 </div>
                 <div

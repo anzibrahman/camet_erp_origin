@@ -12,6 +12,8 @@ const initialState = {
   initialized: false,
   date: "",
   convertedFrom: [],
+  selectedSaleIds: [],
+  salesReturnNotes: [],
   products: [],
   page: 1,
   hasMore: true,
@@ -68,12 +70,21 @@ export const commonVoucherSlice = createSlice({
   name: "commonVoucher",
   initialState,
   reducers: {
+    setSalesReturnNotes: (state, action) => { state.salesReturnNotes = action.payload; },
+    markSalesReturnSaved: (state, action) => {
+      const note = state.salesReturnNotes.find(value => value.key === action.payload.key);
+      if (note) Object.assign(note, { status: "saved", id: action.payload.id, number: action.payload.number });
+    },
+    setSelectedSaleIds: (state, action) => { state.selectedSaleIds = action.payload; },
     addParty: (state, action) => {
+      if (String(state.party?._id) !== String(action.payload?._id)) { state.selectedSaleIds = []; state.salesReturnNotes = []; }
       state.party = action.payload;
       state.newBillToShipTo = {};
     },
     removeParty: (state) => {
+      state.selectedSaleIds = [];
       state.party = {};
+      state.salesReturnNotes = [];
     },
 
     addAllProducts: (state, action) => {
@@ -98,10 +109,10 @@ export const commonVoucherSlice = createSlice({
     removeItem: (state, action) => {
       const id = action.payload;
 
-      const index = state.items.findIndex((el) => el._id === id);
+      const index = state.items.findIndex((el) => (el._voucherLineId || el._id) === id);
       console.log(index);
 
-      state.items.splice(index, 1);
+      if (index !== -1) state.items.splice(index, 1);
     },
     changeCount: (state, action) => {
       const id = action.payload._id;
@@ -193,10 +204,14 @@ export const commonVoucherSlice = createSlice({
       state.subcategory = action.payload;
     },
     setParty: (state, action) => {
+      if (String(state.party?._id) !== String(action.payload?._id)) { state.selectedSaleIds = []; state.salesReturnNotes = []; }
       state.party = action.payload;
     },
     setItem: (state, action) => {
-      state.items = action.payload;
+      state.items = action.payload.map((item, index, items) =>
+        items.filter(value => value._id === item._id).length > 1
+          ? { ...item, _voucherLineId: item._voucherLineId || "voucher-line-" + index }
+          : item);
     },
     setSelectedPriceLevel: (state, action) => {
       state.selectedPriceLevel = action.payload;
@@ -221,7 +236,8 @@ export const commonVoucherSlice = createSlice({
     addItem: (state, action) => {
       const { payload, moveToTop } = action.payload;
 
-      const index = state.items.findIndex((el) => el?._id === payload?._id);
+      const index = state.items.findIndex((el) => payload._voucherLineId
+        ? el._voucherLineId === payload._voucherLineId : el?._id === payload?._id);
 
       if (index !== -1) {
         // If the item already exists, update it
@@ -253,7 +269,7 @@ export const commonVoucherSlice = createSlice({
     updateItem: (state, actions) => {
       const { item, moveToTop = false } = actions.payload;
 
-      const index = state.items.findIndex((el) => el?._id === item?._id);
+      const index = state.items.findIndex((el) => (el._voucherLineId || el._id) === (item._voucherLineId || item._id));
 
       if (index !== -1) {
         state.items[index] = item;
@@ -278,7 +294,7 @@ export const commonVoucherSlice = createSlice({
       const id = action.payload.id;
       const idx = action.payload.idx;
 
-      const index = state.items.findIndex((el) => el._id === id);
+      const index = state.items.findIndex((el) => (el._voucherLineId || el._id) === id);
       if (index !== -1) {
         const currentItem = state.items[index];
         const currentBatch = currentItem.GodownList[idx];
@@ -310,7 +326,7 @@ export const commonVoucherSlice = createSlice({
             (godown) => godown.added === false || godown.added == undefined
           )
         ) {
-          state.items.splice(index, 1);
+          if (index !== -1) state.items.splice(index, 1);
         }
       }
     },
@@ -620,6 +636,9 @@ export const commonVoucherSlice = createSlice({
 
 // Action creators are generated for each case reducer function
 export const {
+  setSalesReturnNotes,
+  markSalesReturnSaved,
+  setSelectedSaleIds,
   addParty,
   removeParty,
   addItem,

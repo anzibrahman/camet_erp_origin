@@ -1,3 +1,4 @@
+import { prepareVoucherParty } from "../helpers/voucherPartyHelper.js";
 import {
   checkForNumberExistence,
   getNewSerialNumber,
@@ -24,6 +25,7 @@ import VoucherSeriesModel from "../models/VoucherSeriesModel.js";
 import { sendMail } from "../helpers/hotelHelper.js";
 import primaryUserModel from "../models/primaryUserModel.js";
 export const createReceipt = async (req, res) => {
+  if (!await prepareVoucherParty(req, res)) return;
   const {
     date,
     receiptNumber,
@@ -302,6 +304,7 @@ export const cancelReceipt = async (req, res) => {
  */
 
 export const editReceipt = async (req, res) => {
+  if (!await prepareVoucherParty(req, res)) return;
   const receiptId = req.params.receiptId;
   const Primary_user_id = req.owner.toString();
   const Secondary_user_id = req.sUserId;

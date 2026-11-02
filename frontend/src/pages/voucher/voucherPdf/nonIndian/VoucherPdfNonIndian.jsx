@@ -19,7 +19,7 @@ function VoucherPdfNonIndian({ data, org, contentToPrint, bank, tab }) {
   const getVoucherType = () => {
     const currentVoucherType = data?.voucherType;
 
-    if (currentVoucherType === "sales" || currentVoucherType === "vanSale") {
+    if (currentVoucherType === "sales" || currentVoucherType === "vanSale" || currentVoucherType === "performaInvoice") {
       return "sale";
     } else if (currentVoucherType === "saleOrder") {
       return "saleOrder";
@@ -277,7 +277,7 @@ function VoucherPdfNonIndian({ data, org, contentToPrint, bank, tab }) {
           <div className="pdf-page">
             <div className="flex">
               <div className="font-bold text-sm md:text-xl mb-2 mt-6">
-                {configurations?.printTitle || ""}
+                {data?.voucherType === "performaInvoice" ? "PROFORMA INVOICE" : configurations?.printTitle || ""}
               </div>
             </div>
             <VoucherPdfHeaderNonIndian

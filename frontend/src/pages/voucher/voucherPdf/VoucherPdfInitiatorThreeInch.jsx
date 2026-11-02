@@ -29,17 +29,19 @@ function VoucherPdfInitiatorThreeInch() {
   let voucherType = null;
   const params = {};
 
-  if (pathname.includes("/sUsers/sharesalesThreeInch/")) {
+  if (pathname.toLowerCase().includes("/susers/shareperformainvoicethreeinch/")) {
+    voucherType = "performaInvoice";
+  } else if (pathname.toLowerCase().includes("/susers/sharesalesthreeinch/")) {
     voucherType = "sales";
-  } else if (pathname.includes("/sUsers/sharepurchaseThreeInch/")) {
+  } else if (pathname.toLowerCase().includes("/susers/sharepurchasethreeinch/")) {
     voucherType = "purchase";
-  } else if (pathname.includes("/sUsers/sharesaleOrderThreeInch/")) {
+  } else if (pathname.toLowerCase().includes("/susers/sharesaleorderthreeinch/")) {
     voucherType = "saleOrder";
-  } else if (pathname.includes("/sUsers/sharecreditNoteThreeInch/")) {
+  } else if (pathname.toLowerCase().includes("/susers/sharecreditnotethreeinch/")) {
     voucherType = "creditNote";
-  } else if (pathname.includes("/sUsers/sharedebitNoteThreeInch/")) {
+  } else if (pathname.toLowerCase().includes("/susers/sharedebitnotethreeinch/")) {
     voucherType = "debitNote";
-  } else if (pathname.includes("/sUsers/sharevanSaleThreeInch/")) {
+  } else if (pathname.toLowerCase().includes("/susers/sharevansalethreeinch/")) {
     voucherType = "sales";
     params.vanSale = true;
   }

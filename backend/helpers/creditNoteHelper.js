@@ -1,3 +1,4 @@
+import { creditNoteStockItems } from "./creditNoteStockItems.js";
 import productModel from "../models/productModel.js";
 import creditNoteModel from "../models/creditNoteModel.js";
 import { formatToLocalDate, truncateToNDecimals } from "./helper.js";
@@ -10,7 +11,7 @@ export const handleCreditNoteStockUpdates = async (items, session) => {
   const productUpdates = [];
   const godownUpdates = [];
 
-  for (const item of items) {
+  for (const item of creditNoteStockItems(items)) {
     const product = await productModel
       .findOne({ _id: item._id })
       .session(session);
@@ -213,6 +214,10 @@ console.log("line 203 creditnote")
       party,
       despatchDetails,
       items: updatedItems,
+      selectedSaleIds: req.body.selectedSaleIds || [],
+      returnSourceSaleIds: req.body.returnSourceSaleIds || [],
+      returnAllocations: req.body.returnAllocations || [],
+      settlementMode: req.body.selectedSaleIds?.length ? "selected" : "automatic",
       additionalCharges: updateAdditionalCharge,
       note,
       finalAmount: lastAmount,
@@ -285,7 +290,7 @@ export const revertCreditNoteStockUpdates = async (items, session) => {
     const productUpdates = [];
     const godownUpdates = [];
 
-    for (const item of items) {
+    for (const item of creditNoteStockItems(items)) {
       const product = await productModel
         .findOne({ _id: item._id })
         .session(session);

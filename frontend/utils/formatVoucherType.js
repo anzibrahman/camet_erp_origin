@@ -1,6 +1,7 @@
 export const formatVoucherType = (voucherType) => {
   
   if (!voucherType) return "Voucher Type";
+  if (voucherType === "performaInvoice") return "Proforma Invoice";
 
   return voucherType
     ?.replace(/([A-Z])/g, " $1") // insert space before capital letters

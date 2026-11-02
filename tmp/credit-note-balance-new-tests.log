@@ -1,0 +1,177 @@
+TAP version 13
+# (node:12468) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+# (Use `node --trace-deprecation ...` to show where the warning was created)
+# Subtest: sale review preserves 10 sold and exposes 6 returned / 4 available without changing the invoice
+ok 1 - sale review preserves 10 sold and exposes 6 returned / 4 available without changing the invoice
+  ---
+  duration_ms: 18.3683
+  ...
+# Subtest: cancelled credit notes release the return quantity and customer/company scope is enforced
+ok 2 - cancelled credit notes release the return quantity and customer/company scope is enforced
+  ---
+  duration_ms: 1.8097
+  ...
+# Subtest: 10 already returned produces zero remaining, never a negative balance
+ok 3 - 10 already returned produces zero remaining, never a negative balance
+  ---
+  duration_ms: 0.8145
+  ...
+# Subtest: returns are deducted once across duplicate product rows
+ok 4 - returns are deducted once across duplicate product rows
+  ---
+  duration_ms: 1.5641
+  ...
+# Subtest: standalone credit-note save rejects 6 when only 4 remain, and accepts 4
+ok 5 - standalone credit-note save rejects 6 when only 4 remain, and accepts 4
+  ---
+  duration_ms: 9.8533
+  ...
+# Subtest: return allocation metadata survives credit-note model serialization
+ok 6 - return allocation metadata survives credit-note model serialization
+  ---
+  duration_ms: 70.6138
+  ...
+# Subtest: saving rejects stale or forged displayed available quantities
+ok 7 - saving rejects stale or forged displayed available quantities
+  ---
+  duration_ms: 2.0637
+  ...
+# Subtest: return draft preserves selected quantities and sale history
+ok 8 - return draft preserves selected quantities and sale history
+  ---
+  duration_ms: 43.2129
+  ...
+# Subtest: returns appear beside sale items without mutating the sale payload or totals
+ok 9 - returns appear beside sale items without mutating the sale payload or totals
+  ---
+  duration_ms: 2.7888
+  ...
+# Subtest: saved credit note rows remain visible with the saved credit note number
+ok 10 - saved credit note rows remain visible with the saved credit note number
+  ---
+  duration_ms: 3.9459
+  ...
+# Subtest: saving uses a credit note series and sends only return items to createCreditNote
+ok 11 - saving uses a credit note series and sends only return items to createCreditNote
+  ---
+  duration_ms: 7.2474
+  ...
+# Subtest: save failures preserve pending return products
+ok 12 - save failures preserve pending return products
+  ---
+  duration_ms: 4.6979
+  ...
+# Subtest: missing credit note series blocks saving without posting
+ok 13 - missing credit note series blocks saving without posting
+  ---
+  duration_ms: 1.598
+  ...
+# Subtest: mismatched customers cannot create or save return drafts
+ok 14 - mismatched customers cannot create or save return drafts
+  ---
+  duration_ms: 18.2571
+  ...
+# Subtest: empty product selection cannot be imported
+ok 15 - empty product selection cannot be imported
+  ---
+  duration_ms: 0.9679
+  ...
+# Subtest: return state stays separate from sales and clears when the customer changes
+ok 16 - return state stays separate from sales and clears when the customer changes
+  ---
+  duration_ms: 303.5265
+  ...
+# Subtest: saved credit notes cannot be submitted again
+ok 17 - saved credit notes cannot be submitted again
+  ---
+  duration_ms: 2.78
+  ...
+# Subtest: return products are first even when there are many normal sale rows
+ok 18 - return products are first even when there are many normal sale rows
+  ---
+  duration_ms: 1.9875
+  ...
+# Subtest: import keys work when randomUUID is unavailable on an HTTP origin
+ok 19 - import keys work when randomUUID is unavailable on an HTTP origin
+  ---
+  duration_ms: 1.046
+  ...
+# Subtest: return saving accepts the JSON-encoded date initialized by the Sales page
+ok 20 - return saving accepts the JSON-encoded date initialized by the Sales page
+  ---
+  duration_ms: 1.5443
+  ...
+# Subtest: Save Transaction includes unsaved returns separately and excludes already-saved notes
+ok 21 - Save Transaction includes unsaved returns separately and excludes already-saved notes
+  ---
+  duration_ms: 36.5475
+  ...
+# Subtest: unchanged transaction retry preserves its ID, while edited products get a new ID
+ok 22 - unchanged transaction retry preserves its ID, while edited products get a new ID
+  ---
+  duration_ms: 1.8157
+  ...
+# Subtest: three sales show one merged A while retaining both original invoice quantities
+ok 23 - three sales show one merged A while retaining both original invoice quantities
+  ---
+  duration_ms: 4.4168
+  ...
+# Subtest: remove A from S1 excludes S1, leaving S2's A and B and S3's D
+ok 24 - remove A from S1 excludes S1, leaving S2's A and B and S3's D
+  ---
+  duration_ms: 2.8041
+  ...
+# Subtest: removing both A quantities excludes S1 but keeps S2 for its B
+ok 25 - removing both A quantities excludes S1 but keeps S2 for its B
+  ---
+  duration_ms: 1.6507
+  ...
+# Subtest: partial source removal scales taxes and actual quantities and rejects increases
+ok 26 - partial source removal scales taxes and actual quantities and rejects increases
+  ---
+  duration_ms: 2.1042
+  ...
+# Subtest: same product at different sale rates has one display row and retains source values
+ok 27 - same product at different sale rates has one display row and retains source values
+  ---
+  duration_ms: 2.838
+  ...
+# Subtest: modal decrement requires choosing which original sale loses one unit
+ok 28 - modal decrement requires choosing which original sale loses one unit
+  ---
+  duration_ms: 6.0312
+  ...
+# Subtest: modal removing both merged A units drops S1 and keeps S2's other product
+ok 29 - modal removing both merged A units drops S1 and keeps S2's other product
+  ---
+  duration_ms: 2.8268
+  ...
+# Subtest: modal disallows increasing quantities and can remove the last return product
+ok 30 - modal disallows increasing quantities and can remove the last return product
+  ---
+  duration_ms: 2.4494
+  ...
+# Subtest: review starts with available 4 after 6 of 10 sold were saved as returns
+ok 31 - review starts with available 4 after 6 of 10 sold were saved as returns
+  ---
+  duration_ms: 11.5469
+  ...
+# Subtest: pending returns reserve quantity before another import and saved badges are not deducted twice
+ok 32 - pending returns reserve quantity before another import and saved badges are not deducted twice
+  ---
+  duration_ms: 1.4047
+  ...
+# Subtest: fully returned products cannot prepare another credit note
+ok 33 - fully returned products cannot prepare another credit note
+  ---
+  duration_ms: 1.051
+  ...
+1..33
+# tests 33
+# suites 0
+# pass 33
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 4802.0363

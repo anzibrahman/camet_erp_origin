@@ -8,6 +8,7 @@ import StockTransferModel from "../models/stockTransferModel.js";
 import ReceiptModel from "../models/receiptModel.js";
 import PaymentModel from "../models/paymentModel.js";
 import SalesModel from "../models/salesModel.js";
+import ProformaInvoice from "../models/proformaInvoiceModel.js";
 import SettlementModel from "../models/settlementModel.js";
 /**
  * Gets current voucher number, increments it, and returns formatted number
@@ -93,6 +94,7 @@ export const generateVoucherNumber = async (
 const getVoucherModel = (voucherType) => {
   const modelMap = {
     sales: SalesModel,
+    performaInvoice: ProformaInvoice,
     saleOrder: SaleOrderModel,
     vanSale: VanSaleModel,
     purchase: PurchaseModel,

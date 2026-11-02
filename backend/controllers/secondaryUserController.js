@@ -1673,8 +1673,8 @@ export const getBankAndCashSources = async (req, res) => {
     // Common query conditions
     const baseQuery = {
       cmp_id,
+      Primary_user_id: req.owner,
       partyName: { $nin: [null, "null", ""] },
-      party_master_id: { $exists: true },
     };
 
     const selectFields = {

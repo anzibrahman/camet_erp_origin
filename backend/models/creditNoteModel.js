@@ -17,6 +17,11 @@ const creditNoteSchema = new Schema(
     selectedDate: { type: String },
     voucherType: { type: String, default: "creditNote" },
     convertedFrom: { type: Array, default: [] },
+    settlementMode: { type: String, enum: ["automatic", "selected"] },
+    selectedSaleIds: [{ type: Schema.Types.ObjectId, ref: "Sales" }],
+    returnAllocations: [{ _id: false, saleId: { type: Schema.Types.ObjectId, ref: "Sales" }, amount: Number,
+      products: [{ _id: false, productId: { type: Schema.Types.ObjectId, ref: "Product" }, quantity: Number, amount: Number }] }],
+    returnSourceSaleIds: [{ type: Schema.Types.ObjectId, ref: "Sales" }],
     serialNumber: { type: Number },
     userLevelSerialNumber: { type: Number },
     creditNoteNumber: {
@@ -239,6 +244,8 @@ creditNoteSchema.index(
   { cmp_id: 1, series_id: 1, creditNoteNumber: 1 },
   { unique: true, name: "unique_credit_note_number_per_series" }
 );
+
+creditNoteSchema.index({ cmp_id: 1, Primary_user_id: 1, selectedSaleIds: 1, isCancelled: 1 });
 
 // 3. Most common query pattern (company + date sorting)
 creditNoteSchema.index({ cmp_id: 1, date: -1 });

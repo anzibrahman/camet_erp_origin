@@ -1,4 +1,6 @@
-import { useEffect, useState } from "react";
+/* eslint-disable react/prop-types */
+import { salesTransactionSubmission } from "./salesReturnDraft";
+import { useEffect, useState, useRef } from "react";
 import { ChevronDown, CircleDot } from "lucide-react";
 import TitleDiv from "@/components/common/TitleDiv";
 import { useDispatch, useSelector } from "react-redux";
@@ -10,6 +12,7 @@ import {
   addPaymentSplits,
   updateTotalValue,
   resetPaymentSplit,
+  removeAll,
 } from "../../../../slices/voucherSlices/commonVoucherSlice";
 import { toast } from "sonner";
 import { store } from "../../../../app/store";
@@ -25,7 +28,7 @@ const fetchBankAndCashSources = async (cmp_id) => {
   return response.data.data;
 };
 
-function PaymentSplitting() {
+function PaymentSplitting({ embedded = false, onSaved, onTransactionSaved } = {}) {
   // Store payment splits in the required format directly
   const [paymentSplits, setPaymentSplits] = useState([
     { type: "cash", amount: 0, ref_id: null, ref_collection: "Cash" },
@@ -40,6 +43,8 @@ function PaymentSplitting() {
     },
   ]);
   const [submitLoading, setSubmitLoading] = useState(false);
+  const transactionSavingRef = useRef(false);
+  const transactionSubmissionRef = useRef(null);
   const [hasAutoSelected, setHasAutoSelected] = useState(false); // Track if auto-selection has occurred
 
   // Payment mode display information
@@ -59,7 +64,7 @@ function PaymentSplitting() {
   const { _id: cmp_id, configurations } = useSelector(
     (state) => state.secSelectedOrganization.secSelectedOrg,
   );
-  const { enablePaymentSplittingAsCompulsory = false } = configurations[0];
+  const { enablePaymentSplittingAsCompulsory: configuredPaymentCompulsory = false } = configurations[0];
 
   //// check if the user is admin
   const isAdmin =
@@ -97,14 +102,14 @@ function PaymentSplitting() {
     queryFn: () => fetchBankAndCashSources(cmp_id),
     enabled: !!cmp_id,
     refetchOnWindowFocus: false,
-    staleTime: 1000 * 60,
+    staleTime: 0,
   });
 
   useEffect(() => {
-    if (!totalWithAdditionalCharges) {
+    if (!embedded && !totalWithAdditionalCharges) {
       navigate(-1, { replace: true });
     }
-  }, [totalWithAdditionalCharges, navigate]);
+  }, [totalWithAdditionalCharges, navigate, embedded]);
 
   useEffect(() => {
     if (paymentSplittingData) {
@@ -318,7 +323,21 @@ function PaymentSplitting() {
     });
   };
 
+  const validateEmbeddedPayment = () => {
+    if (!embedded) return true;
+    if (additionalChargesFromRedux.some(row => row.value === "" || !Number.isFinite(Number(row.value)) || Number(row.value) < 0)) {
+      toast.error("Enter a valid, non-negative value for each additional charge.");
+      return false;
+    }
+    if (paymentSplits.some(split => !Number.isFinite(Number(split.amount)) || Number(split.amount) < 0)) {
+      toast.error("Enter valid, non-negative payment amounts.");
+      return false;
+    }
+    return true;
+  };
+
   const handleSavePaymentSplit = () => {
+    if (!validateEmbeddedPayment()) return;
     const validSplits = getValidPaymentSplits();
     const data = {
       changeFinalAmount: true,
@@ -331,10 +350,12 @@ function PaymentSplitting() {
       updateTotalValue({ field: "totalPaymentSplits", value: totalAmount }),
     );
 
-    navigate(-1, { replace: true });
+    if (embedded) onSaved?.();
+    else navigate(-1, { replace: true });
   };
 
   const handleSavePaymentSplitAndSubmit = () => {
+    if (!validateEmbeddedPayment()) return;
     const validSplits = getValidPaymentSplits();
     const data = {
       changeFinalAmount: true,
@@ -373,10 +394,12 @@ function PaymentSplitting() {
 
   console.log(_idFromRedux);
 
+  const enablePaymentSplittingAsCompulsory = configuredPaymentCompulsory && voucherTypeFromRedux !== "performaInvoice";
+
   const getApiEndPoint = () => {
     if (voucherTypeFromRedux) {
       if (modeFromRedux == "edit") {
-        return `editSales/${_idFromRedux}`;
+        return voucherTypeFromRedux === "performaInvoice" ? `editPerformaInvoice/${_idFromRedux}` : `editSales/${_idFromRedux}`;
       }
       return `create${voucherTypeFromRedux
         ?.split("")[0]
@@ -387,6 +410,13 @@ function PaymentSplitting() {
   };
 
   const submitHandler = async () => {
+    if (transactionSavingRef.current) return;
+    const combinedSalesSave = voucherTypeFromRedux === "sales" && modeFromRedux !== "edit";
+    const returnNotes = store.getState().commonVoucherSlice.salesReturnNotes || [];
+    if (!combinedSalesSave && returnNotes.some(note => note.status === "pending")) {
+      toast.error("Add returns when creating a new sale, rather than editing an existing sale.");
+      return;
+    }
     // Validation
     if (
       Object.keys(party).length === 0 &&
@@ -416,6 +446,7 @@ function PaymentSplitting() {
       return;
     }
 
+    transactionSavingRef.current = true;
     setSubmitLoading(true);
     const voucherNumberTitle = getVoucherNumberTitle();
 
@@ -437,12 +468,12 @@ function PaymentSplitting() {
         series_id: selectedVoucherSeriesFromRedux?._id,
         usedSeriesNumber: selectedVoucherSeriesFromRedux?.currentNumber,
         orgId: cmp_id,
+        selectedSaleIds: voucherType === "creditNote" ? (reduxData.selectedSaleIds || []) : [],
 
         /// these values are not getting latest data,so we need to take it directly form store
         finalAmount: Number(reduxData?.finalAmount?.toFixed(2) || 0),
         finalOutstandingAmount: Number(
-          reduxData?.finalOutstandingAmount?.toFixed(2) ||
-            Number(reduxData?.finalAmount?.toFixed(2) || 0),
+          (reduxData?.finalOutstandingAmount ?? reduxData?.finalAmount ?? 0).toFixed(2),
         ),
         subTotal: Number(reduxData?.subTotal?.toFixed(2) || 0),
         totalPaymentSplits: Number(
@@ -466,7 +497,11 @@ function PaymentSplitting() {
 
       console.log(formData);
 
-      const endPoint = getApiEndPoint();
+      const endPoint = combinedSalesSave ? "createSalesTransaction" : getApiEndPoint();
+      if (combinedSalesSave) {
+        transactionSubmissionRef.current = salesTransactionSubmission(formData, returnNotes, transactionSubmissionRef.current);
+        formData = transactionSubmissionRef.current.payload;
+      }
       let params = {};
       if (voucherTypeFromRedux === "vanSale") {
         params = {
@@ -484,18 +519,27 @@ function PaymentSplitting() {
       );
       toast.success(res.data.message);
 
-      navigate(`/sUsers/${voucherTypeFromRedux}Details/${res.data.data._id}`, {
-        state: { from: location?.state?.from || "null" },
-      });
+      if (embedded && onTransactionSaved) {
+        onTransactionSaved();
+      } else {
+        const savedId = combinedSalesSave ? res.data.data.sale._id : res.data.data._id;
+        navigate(`/sUsers/${voucherTypeFromRedux}Details/${savedId}`, {
+          state: { from: location?.state?.from || "null" },
+        });
+      }
 
       queryClient.invalidateQueries({
         queryKey: ["todaysTransaction", cmp_id, isAdmin],
       });
-      // dispatch(removeAll());
+      if (combinedSalesSave) {
+        transactionSubmissionRef.current = null;
+        dispatch(removeAll());
+      }
     } catch (error) {
       toast.error(error.response?.data?.message || "Error creating sale");
       console.log(error);
     } finally {
+      transactionSavingRef.current = false;
       setSubmitLoading(false);
     }
   };
@@ -509,13 +553,21 @@ function PaymentSplitting() {
 
   console.log(paymentSplittingData);
 
+  if (voucherTypeFromRedux === "creditNote") {
+    return <div className="p-4"><p>Receive payment is disabled for credit notes.</p><button type="button" onClick={() => navigate(-1)}>Back to credit note</button></div>;
+  }
+
+  if (voucherTypeFromRedux === "performaInvoice") {
+    return <div className="p-4"><p>Proforma invoices do not receive payments.</p><button type="button" onClick={() => navigate(-1)}>Back to invoice</button></div>;
+  }
+
   return (
-    <div className="min-h-screen bg-gray-50 w-full">
-      <TitleDiv
+    <div className={embedded ? "sales-payment-embedded" : "min-h-screen bg-gray-50 w-full"}>
+      {!embedded && <TitleDiv
         title="Payment Splitting"
         loading={isLoading || submitLoading}
         customNavigate={customNavigate}
-      />
+      />}
       <div className={`${isLoading && "opacity-75 animate-pulse"}`}></div>
       <div className="">
         {/* Main Card */}
@@ -673,7 +725,7 @@ function PaymentSplitting() {
               {enablePaymentSplittingAsCompulsory ? (
                 <button
                   type="button"
-                  disabled={submitLoading}
+                  disabled={submitLoading || (embedded && (isLoading || !!error || !party?._id || totalWithAdditionalCharges <= 0))}
                   onClick={handleSavePaymentSplitAndSubmit}
                   className={`w-full px-8 py-3 rounded-md font-medium transition-all duration-200 text-center text-white 
         bg-violet-700 hover:bg-violet-800 
@@ -684,7 +736,7 @@ function PaymentSplitting() {
               ) : (
                 <button
                   type="button"
-                  disabled={submitLoading}
+                  disabled={submitLoading || (embedded && (isLoading || !!error || !party?._id || totalWithAdditionalCharges <= 0))}
                   onClick={handleSavePaymentSplit}
                   className={`w-full px-8 py-3 rounded-md font-medium transition-all duration-200 text-center text-white 
         bg-pink-500 hover:bg-pink-600 

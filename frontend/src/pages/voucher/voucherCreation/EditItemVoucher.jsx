@@ -1,4 +1,5 @@
 /* eslint-disable react/no-unknown-property */
+/* eslint-disable react/prop-types */
 
 import { useDispatch, useSelector } from "react-redux";
 import EditItemForm from "./EditItemForm";
@@ -6,7 +7,7 @@ import useFetch from "@/customHook/useFetch";
 import { useEffect } from "react";
 import { addWarrantyCardsList } from "../../../../slices/voucherSlices/commonVoucherSlice";
 
-function EditItemVoucher() {
+function EditItemVoucher({ itemId, godownIndex, onClose } = {}) {
   const ItemsFromRedux = useSelector((state) => {
     return state.commonVoucherSlice.items;
   });
@@ -34,7 +35,7 @@ function EditItemVoucher() {
 
   let modifiedVoucherType = voucherType;
   /// for sales and van sale both we have to check sale configuration
-  if (voucherType === "sales" || voucherType === "vanSale") {
+  if (voucherType === "sales" || voucherType === "vanSale" || voucherType === "performaInvoice") {
     modifiedVoucherType = "sale";
   }
 
@@ -48,6 +49,9 @@ function EditItemVoucher() {
       from={voucherType}
       taxInclusive={taxInclusive}
       loading={loading}
+      itemId={itemId}
+      godownIndex={godownIndex}
+      onClose={onClose}
     />
   );
 }

@@ -18,6 +18,7 @@ import { MdReceipt } from "react-icons/md";
 
 const VoucherSeriesSettings = () => {
   const voucherOptions = [
+    { title: "Proforma Invoice", description: "Configure voucher series for Proforma Invoices", icon: <TbFileInvoice />, to: "/sUsers/voucherSeriesList", active: true, from: "performaInvoice" },
     {
       title: "Sale Order",
       description: "Configure voucher series for Sale Orders",

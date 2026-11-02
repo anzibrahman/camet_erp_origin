@@ -1,4 +1,7 @@
+import { beginAdjustmentEdit, finishAdjustmentEdit, reverseVoucherAdjustments } from "../helpers/adjustmentHelper.js";
+import { voucherEditError } from "../helpers/voucherLifecycleHelper.js";
 import mongoose from "mongoose";
+import { prepareVoucherParty } from "../helpers/voucherPartyHelper.js";
 import {
   createSaleRecord,
   handleSaleStockUpdates,
@@ -31,6 +34,8 @@ import kotModal from "../models/kotModal.js";
  */
 
 export const createSale = async (req, res) => {
+  if (!await prepareVoucherParty(req, res)) return;
+  if (req.body.voucherType === "performaInvoice") return res.status(400).json({ message: "Use the proforma invoice endpoint" });
   const session = await mongoose.startSession();
 
   session.startTransaction();
@@ -163,11 +168,13 @@ export const createSale = async (req, res) => {
       );
     }
 
-    // throw new Error("Payment splitting data is missing");
+    const adjustments = [];
+
     await session.commitTransaction();
     res.status(201).json({
       success: true,
       data: result,
+      adjustments,
       message: "Sale created successfully",
     });
   } catch (error) {
@@ -193,6 +200,7 @@ const MAX_RETRIES = 5;
 const RETRY_DELAY_MS = 1000;
 
 export const editSale = async (req, res) => {
+  if (!await prepareVoucherParty(req, res)) return;
   const saleId = req.params.id;
   const {
     orgId,
@@ -232,6 +240,16 @@ export const editSale = async (req, res) => {
           .status(404)
           .json({ success: false, message: "Sale not found" });
       }
+
+      const editError = !isVanSale ? await voucherEditError(existingSale, session) : null;
+      if (editError) {
+        await session.abortTransaction();
+        return res.status(409).json({ success: false, message: editError });
+      }
+
+      const adjustmentPlan = !isVanSale
+        ? await beginAdjustmentEdit(existingSale, party, orgId, req.sUserId || req.owner, session)
+        : null;
 
       const secondaryUser = await secondaryUserModel
         .findById(req.sUserId)
@@ -273,7 +291,7 @@ export const editSale = async (req, res) => {
         note,
         finalAmount: lastAmount,
         Primary_user_id: req.owner,
-        Secondary_user_id: req.secondaryUserId,
+        Secondary_user_id: req.sUserId,
         salesNumber,
         series_id,
         usedSeriesNumber,
@@ -319,9 +337,11 @@ export const editSale = async (req, res) => {
 
       //// update the outstanding of the sale against specific party
 
-      const valueToUpdateInOutstanding = finalOutstandingAmount;
+      const valueToUpdateInOutstanding = finalOutstandingAmount ?? lastAmount;
 
       if (
+        adjustmentPlan?.records.length ||
+        (adjustmentPlan && !adjustmentPlan.sameParty) ||
         valueToUpdateInOutstanding !==
         (existingSale.finalOutstandingAmount || existingSale.finalAmount)
         /// in old sales we dont have finalOutstandingAmount so we added || finalAmount
@@ -340,6 +360,8 @@ export const editSale = async (req, res) => {
           classification: "Dr",
         });
       }
+
+      if (adjustmentPlan) await finishAdjustmentEdit(result, adjustmentPlan, req.sUserId || req.owner, session);
 
       await session.commitTransaction();
       return res.status(200).json({
@@ -401,6 +423,12 @@ export const cancelSale = async (req, res) => {
         .json({ success: false, message: "Sale not found" });
     }
 
+    if (vanSaleQuery !== "true" && sale.isCancelled) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(200).json({ success: true, message: "Voucher is already cancelled", data: sale });
+    }
+
     // Revert stock updates
     !sale.checkOutId && (await revertSaleStockUpdates(sale.items, session)); // Ensure stock updates use session
 
@@ -415,6 +443,7 @@ export const cancelSale = async (req, res) => {
       Primary_user_id: sale.Primary_user_id,
     }).session(session);
     if (outstandingRecord) {
+        await reverseVoucherAdjustments(outstandingRecord, req.sUserId || req.owner, req.body.cancelReason, session);
       //// update pending amount and
       const outstandingResult = await updateOutstandingBalance({
         existingVoucher: sale,
@@ -472,16 +501,17 @@ export const cancelSale = async (req, res) => {
     await session.commitTransaction();
     session.endSession(); // End the session
 
+    try {
     let primaryUserData = await primaryUserModel.findById(req.owner);
 
     if (!primaryUserData || !primaryUserData?.email) {
-      res.status(200).json({
+      return res.status(200).json({
         success: true,
         message: "Sale cancelled successfully but email not sent",
         data: sale,
       });
     }
-const kotIds = sale.convertedFrom.map(item => item.id);
+const kotIds = (sale.convertedFrom || []).map(item => item.id);
 const kotObjectIds = kotIds.map(id => new mongoose.Types.ObjectId(id));
 let kots = await kotModal.find({
   _id: { $in: kotObjectIds }   // or kotIds if they are already ObjectId
@@ -545,6 +575,9 @@ await sendMail({
   data: sale,
 });
 
+    } catch (notificationError) {
+      console.error("Sale cancelled; notification failed:", notificationError);
+    }
     res.status(200).json({
       success: true,
       message: "Sale canceled and stock reverted successfully",
@@ -652,7 +685,10 @@ export const getSalesDetails = async (req, res) => {
     });
 
     const isEditable =
-      !outstandingOfSale || outstandingOfSale?.appliedReceipts?.length === 0;
+      !outstandingOfSale || (
+        !outstandingOfSale.appliedReceipts?.length &&
+        !outstandingOfSale.appliedPayments?.length
+      );
     saleDetails.isEditable = isEditable;
 
     res

@@ -3,7 +3,7 @@ import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
 function ReceiveAmount() {
-  const { paymentSplittingData } = useSelector(
+  const { paymentSplittingData, voucherType } = useSelector(
     (state) => state.commonVoucherSlice
   );
 
@@ -35,6 +35,8 @@ function ReceiveAmount() {
         return type.charAt(0).toUpperCase() + type.slice(1);
     }
   };
+
+  if (voucherType === "creditNote") return null;
 
   return (
     <div className="bg-white">
