@@ -91,7 +91,7 @@ test("entry loads the edit modal's saved flag before product defaults", () => {
 });
 
 import { matchingSaleRateItem } from './desktopSaleItemState.js';
-test('sale rate matching separates different rates, tax flags and discounted rows', () => {
+test('voucher item rate matching separates different rates, tax flags and discounted rows', () => {
  const product={_id:'p1',igst:5,GodownList:[{godown_id:'g1',batch:'A'}]};
  const first=addDesktopStockRow(product,null,0,2,100,false);
  const second=addDesktopStockRow(product,null,0,1,80,false);
@@ -101,4 +101,16 @@ test('sale rate matching separates different rates, tax flags and discounted row
  const discounted={...first,GodownList:first.GodownList.map(row=>({...row,discountPercentage:10}))};
  assert.equal(matchingSaleRateItem([discounted],product,0,100,false),undefined);
  assert.equal(addDesktopStockRow(product,second,0,3,80,false).totalCount,4);
+});
+
+test('rate-aware item matching is reusable for purchases, credit notes, and debit notes', () => {
+ const product={_id:'p1',igst:5,GodownList:[{godown_id:'g1',batch:'A'}]};
+ const purchase100=addDesktopStockRow(product,null,0,1,100,false);
+ const purchase80=addDesktopStockRow(product,null,0,1,80,false);
+ const items=[purchase100,purchase80];
+ for (const voucherType of ['purchase','creditNote','debitNote']) {
+  assert.equal(matchingSaleRateItem(items,product,0,100,false),purchase100,voucherType);
+  assert.equal(matchingSaleRateItem(items,product,0,80,false),purchase80,voucherType);
+  assert.equal(matchingSaleRateItem(items,product,0,70,false),undefined,voucherType);
+ }
 });

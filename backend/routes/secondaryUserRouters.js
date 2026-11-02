@@ -1,3 +1,5 @@
+import { createSalesTransaction } from "../controllers/salesTransactionController.js";
+import { getPartyPurchases } from "../controllers/partyPurchasesController.js";
 import { getPartySales } from "../controllers/partySalesController.js";
 import { saveProformaInvoice, getProformaInvoiceDetails, listProformaInvoices, cancelProformaInvoice } from "../controllers/proformaInvoiceController.js";
 import express from 'express'
@@ -157,6 +159,7 @@ router.put('/cancelPerformaInvoice/:id', authSecondary, secondaryIsBlocked, canc
 router.post('/createSales', authSecondary, secondaryIsBlocked, createSale)
 router.post('/createVanSale', authSecondary, secondaryIsBlocked, createSale)
 router.get('/partySales/:cmp_id/:partyId', authSecondary, secondaryIsBlocked, companyAuthentication, getPartySales);
+router.get('/partyPurchases/:cmp_id/:partyId', authSecondary, secondaryIsBlocked, companyAuthentication, getPartyPurchases);
 router.get('/getSalesDetails/:id', authSecondary, secondaryIsBlocked, getSalesDetails)
 router.post('/saveSalesNumber/:cmp_id', authSecondary, secondaryIsBlocked, companyAuthentication, saveSalesNumber)
 router.get('/fetchAdditionalDetails/:cmp_id', authSecondary, secondaryIsBlocked, companyAuthentication, fetchAdditionalDetails)
@@ -187,6 +190,7 @@ router.post('/createPurchase', authSecondary, secondaryIsBlocked, createPurchase
 router.post('/editPurchase/:id', authSecondary, secondaryIsBlocked, editPurchase)
 router.put("/cancelpurchase/:id", authSecondary, secondaryIsBlocked, cancelPurchase)
 ///credit not routes
+router.post('/createSalesTransaction', authSecondary, secondaryIsBlocked, createSalesTransaction)
 router.post('/createCreditNote', authSecondary, secondaryIsBlocked, createCreditNote)
 router.get('/getCreditNoteDetails/:id', authSecondary, secondaryIsBlocked, getCreditNoteDetails)
 router.put('/cancelCreditNote/:id', authSecondary, secondaryIsBlocked, cancelCreditNote)

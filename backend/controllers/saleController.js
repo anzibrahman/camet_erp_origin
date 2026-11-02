@@ -1,3 +1,4 @@
+import { beginAdjustmentEdit, finishAdjustmentEdit, reverseVoucherAdjustments } from "../helpers/adjustmentHelper.js";
 import { voucherEditError } from "../helpers/voucherLifecycleHelper.js";
 import mongoose from "mongoose";
 import { prepareVoucherParty } from "../helpers/voucherPartyHelper.js";
@@ -167,11 +168,13 @@ export const createSale = async (req, res) => {
       );
     }
 
-    // throw new Error("Payment splitting data is missing");
+    const adjustments = [];
+
     await session.commitTransaction();
     res.status(201).json({
       success: true,
       data: result,
+      adjustments,
       message: "Sale created successfully",
     });
   } catch (error) {
@@ -243,6 +246,10 @@ export const editSale = async (req, res) => {
         await session.abortTransaction();
         return res.status(409).json({ success: false, message: editError });
       }
+
+      const adjustmentPlan = !isVanSale
+        ? await beginAdjustmentEdit(existingSale, party, orgId, req.sUserId || req.owner, session)
+        : null;
 
       const secondaryUser = await secondaryUserModel
         .findById(req.sUserId)
@@ -330,9 +337,11 @@ export const editSale = async (req, res) => {
 
       //// update the outstanding of the sale against specific party
 
-      const valueToUpdateInOutstanding = finalOutstandingAmount;
+      const valueToUpdateInOutstanding = finalOutstandingAmount ?? lastAmount;
 
       if (
+        adjustmentPlan?.records.length ||
+        (adjustmentPlan && !adjustmentPlan.sameParty) ||
         valueToUpdateInOutstanding !==
         (existingSale.finalOutstandingAmount || existingSale.finalAmount)
         /// in old sales we dont have finalOutstandingAmount so we added || finalAmount
@@ -351,6 +360,8 @@ export const editSale = async (req, res) => {
           classification: "Dr",
         });
       }
+
+      if (adjustmentPlan) await finishAdjustmentEdit(result, adjustmentPlan, req.sUserId || req.owner, session);
 
       await session.commitTransaction();
       return res.status(200).json({
@@ -432,6 +443,7 @@ export const cancelSale = async (req, res) => {
       Primary_user_id: sale.Primary_user_id,
     }).session(session);
     if (outstandingRecord) {
+        await reverseVoucherAdjustments(outstandingRecord, req.sUserId || req.owner, req.body.cancelReason, session);
       //// update pending amount and
       const outstandingResult = await updateOutstandingBalance({
         existingVoucher: sale,
@@ -673,7 +685,10 @@ export const getSalesDetails = async (req, res) => {
     });
 
     const isEditable =
-      !outstandingOfSale || outstandingOfSale?.appliedReceipts?.length === 0;
+      !outstandingOfSale || (
+        !outstandingOfSale.appliedReceipts?.length &&
+        !outstandingOfSale.appliedPayments?.length
+      );
     saleDetails.isEditable = isEditable;
 
     res

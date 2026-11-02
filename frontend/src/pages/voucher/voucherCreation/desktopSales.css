@@ -291,3 +291,12 @@
 .credit-note-sales-dialog button { padding: 6px 10px; border: 1px solid #cbd5e1; border-radius: 4px; color: #195cff; }
 .credit-note-sales-dialog button:disabled { opacity: .5; }
 .credit-note-sales-dialog footer, .credit-note-sales-tools { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+
+.sales-import-scroll { max-height: 30dvh; }
+.sales-import-scroll input[type="checkbox"] { width: 16px; height: 16px; padding: 0; accent-color: #195cff; vertical-align: middle; }
+.sales-import-return-badge { display: inline-block; border-radius: 999px; padding: 2px 7px; background: #dcfce7; color: #166534; font-size: 11px; font-weight: 600; }
+.sales-import-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+.sales-item-description .sales-import-return-badge { white-space: normal; }
+.desktop-sales .sales-item-description > .sales-import-return-badge { flex-shrink: 0; white-space: nowrap; }
+.desktop-sales .sales-items-scroll .sales-return-row { background: #f0fdf4; }
+.sales-transaction-result { grid-column: 1 / -1; margin: 3px 0; color: #166534; font-size: 12px; }

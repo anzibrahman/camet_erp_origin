@@ -1,3 +1,5 @@
+import SalesCustomerImport from "./SalesCustomerImport";
+import DebitNotePartyPurchases from "./DebitNotePartyPurchases";
 import CreditNotePartySales from "./CreditNotePartySales";
 /* eslint-disable react/prop-types */
 import { useEffect, useRef, useState } from "react";
@@ -67,6 +69,7 @@ export default function DesktopPartySearch({ cmpId, party, locked, voucherType =
     <div className="sales-party-control">
     <div className="credit-note-party-picker">
     {voucherType === "creditNote" && party?._id && <CreditNotePartySales key={party?._id || "none"} cmpId={cmpId} party={party} locked={locked} />}
+    {voucherType === "debitNote" && party?._id && <DebitNotePartyPurchases key={party?._id || "none"} cmpId={cmpId} party={party} locked={locked} />}
     <div className="credit-note-party-select"><CreatableSelect ref={partySelectRef} inputId="desktop-sale-party" instanceId="desktop-sale-party"
       placeholder={creating ? "Adding customer…" : isPurchase ? "Search supplier…" : "Search or add customer…"} isClearable isDisabled={locked || creating}
       value={party?._id ? party : null} options={input === search ? data : []}
@@ -81,7 +84,9 @@ export default function DesktopPartySearch({ cmpId, party, locked, voucherType =
       menuPortalTarget={document.body} menuPosition="fixed" maxMenuHeight={240}
       styles={{ menuPortal: base => ({ ...base, zIndex: 9999 }), control: base => ({ ...base, fontSize: 12, minHeight: 30 }), valueContainer: base => ({ ...base, padding: "0 6px" }), indicatorsContainer: base => ({ ...base, height: 28 }), option: base => ({ ...base, fontSize: 12, padding: "7px 10px" }) }}
     />
-    </div></div>
+    </div>
+    {voucherType === "sales" && party?._id && <SalesCustomerImport key={`${cmpId}:${party._id}`} cmpId={cmpId} party={party} locked={locked} />}
+    </div>
     {party?._id && <div className="desktop-party-actions">
       <Link to={`/sUsers/billTo${billToVoucher}/${party._id}`}><span>Bill To address</span></Link>
     </div>}

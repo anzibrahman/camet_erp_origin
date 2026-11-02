@@ -12,6 +12,8 @@ const initialState = {
   initialized: false,
   date: "",
   convertedFrom: [],
+  selectedSaleIds: [],
+  salesReturnNotes: [],
   products: [],
   page: 1,
   hasMore: true,
@@ -68,12 +70,21 @@ export const commonVoucherSlice = createSlice({
   name: "commonVoucher",
   initialState,
   reducers: {
+    setSalesReturnNotes: (state, action) => { state.salesReturnNotes = action.payload; },
+    markSalesReturnSaved: (state, action) => {
+      const note = state.salesReturnNotes.find(value => value.key === action.payload.key);
+      if (note) Object.assign(note, { status: "saved", id: action.payload.id, number: action.payload.number });
+    },
+    setSelectedSaleIds: (state, action) => { state.selectedSaleIds = action.payload; },
     addParty: (state, action) => {
+      if (String(state.party?._id) !== String(action.payload?._id)) { state.selectedSaleIds = []; state.salesReturnNotes = []; }
       state.party = action.payload;
       state.newBillToShipTo = {};
     },
     removeParty: (state) => {
+      state.selectedSaleIds = [];
       state.party = {};
+      state.salesReturnNotes = [];
     },
 
     addAllProducts: (state, action) => {
@@ -193,6 +204,7 @@ export const commonVoucherSlice = createSlice({
       state.subcategory = action.payload;
     },
     setParty: (state, action) => {
+      if (String(state.party?._id) !== String(action.payload?._id)) { state.selectedSaleIds = []; state.salesReturnNotes = []; }
       state.party = action.payload;
     },
     setItem: (state, action) => {
@@ -624,6 +636,9 @@ export const commonVoucherSlice = createSlice({
 
 // Action creators are generated for each case reducer function
 export const {
+  setSalesReturnNotes,
+  markSalesReturnSaved,
+  setSelectedSaleIds,
   addParty,
   removeParty,
   addItem,

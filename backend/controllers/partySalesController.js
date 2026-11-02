@@ -1,3 +1,4 @@
+import { previousReturnQuantities, salesWithReturnBalances } from "../helpers/creditNoteReturnBalance.js";
 import mongoose from "mongoose";
 import Sales from "../models/salesModel.js";
 import Organization from "../models/OragnizationModel.js";
@@ -21,6 +22,7 @@ export async function getPartySales(req, res) {
       Sales.find(filter).select("salesNumber date finalAmount party items selectedPriceLevel").sort({ date: -1, createdAt: -1 }).skip((page - 1) * limit).limit(limit).lean(),
       Sales.countDocuments(filter),
     ]);
-    return res.json({ data, page, total, hasMore: page * limit < total });
+    const quantities = await previousReturnQuantities({ cmp_id, Primary_user_id: req.owner, "party._id": partyId }, data.filter(sale => sale.items?.length).map(sale => sale._id));
+    return res.json({ data: salesWithReturnBalances(data, quantities), page, total, hasMore: page * limit < total });
   } catch (error) { return res.status(500).json({ message: "Unable to load this party's sales" }); }
 }
