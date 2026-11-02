@@ -1,5 +1,4 @@
 /* eslint-disable react/prop-types */
-import ReturnSourcesControl from "./ReturnSourcesControl";
 import { IoIosArrowDown, IoMdAdd } from "react-icons/io";
 import { MdCancel } from "react-icons/md";
 import { Link } from "react-router-dom";
@@ -95,7 +94,7 @@ function AddItemTile({
                   <div className="flex-1">
                     <div className="flex justify-between font-bold text-xs gap-10 ">
                       <p className="text-[10px] sm:text-xs">
-                        {el._importedReturn && <ReturnSourcesControl item={el} disabled={convertedFrom.length > 0} />} {el.product_name} {el._importedReturn && <span className="sales-import-return-badge">Return{el._returnSaved ? ` · ${el._returnNoteNumber}` : ""}</span>}
+                        {el.product_name} {el._importedReturn && <span className="sales-import-return-badge">Return{el._returnSaved ? ` · ${el._returnNoteNumber}` : ""}</span>}
                       </p>
                       <p className="text-nowrap">
                         ₹{" "}

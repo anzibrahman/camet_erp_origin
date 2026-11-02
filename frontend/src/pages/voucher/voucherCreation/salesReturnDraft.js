@@ -9,7 +9,10 @@ export function salesReturnDisplayItems(items, notes, partyId) {
         _returnNoteNumber: note.number || "", _returnSaved: note.status === "saved", _returnSources: [], GodownList: [], total: 0, totalCount: 0 });
       const group = groups.get(key);
       group._returnSources.push({ noteKey: note.key, lineId: item._voucherLineId, saleId: item._returnSourceSaleId,
-        salesNumber: item._returnSourceSaleNumber || item._returnSourceSaleId, quantity: item.totalCount, amount: item.total });
+        salesNumber: item._returnSourceSaleNumber || item._returnSourceSaleId, quantity: item.totalCount, amount: item.total,
+        soldQuantity: item._returnSoldQuantity ?? item.totalCount,
+        returnedQuantity: item._returnReturnedQuantity || 0,
+        availableQuantity: item._returnAvailableQuantity ?? item.totalCount });
       group.total += Number(item.total || 0); group.totalCount += Number(item.totalCount || 0);
       group.GodownList.push(...item.GodownList);
     }
@@ -48,7 +51,12 @@ export function createSalesReturnDraft(items, quantities, sales, partyId, key) {
       if (!count) continue;
       const selected = Object.fromEntries(source.item.GodownList.map((_, index) => [`0:${index}`, index === source.rowIndex ? count : 0]));
       const [product] = creditNoteItemsFromSale([source.item], selected);
-      returnItems.push({ ...product, _returnSourceSaleId: source.saleId, _returnSourceSaleNumber: source.salesNumber,
+      const sourceRow = source.item.GodownList[source.rowIndex];
+      returnItems.push({ ...product,
+        _returnSoldQuantity: Number(sourceRow.soldQuantity ?? sourceRow.count),
+        _returnReturnedQuantity: Number(sourceRow.returnedQuantity || 0),
+        _returnAvailableQuantity: source.quantity,
+        _returnSourceSaleId: source.saleId, _returnSourceSaleNumber: source.salesNumber,
         _importedReturn: true, _voucherLineId: `sales-return-${key}-${returnItems.length}` });
     }
     if (remaining > 0) throw new Error("Reimport these products to identify their source sale");
@@ -108,4 +116,26 @@ export function updateSalesReturnSource(notes, noteKey, lineId, quantity) {
     });
     return { ...note, items, selectedSaleIds: [...new Set(items.map(item => item._returnSourceSaleId).filter(Boolean))] };
   }).filter(note => note.items.length);
+}
+
+export function reduceImportProduct(draft, product, quantities, target = null) {
+  let remaining = 0;
+  for (const source of product._returnSources) {
+    const count = Number(quantities[source.lineId]);
+    if (!Number.isFinite(count) || count < 0 || count > source.quantity) throw new Error("Quantities can only be reduced from their current value");
+    remaining += count;
+  }
+  if (remaining >= product.totalCount) throw new Error("Reduce at least one source quantity");
+  if (target != null && Math.abs(remaining - target) > 0.000001) throw new Error(`Choose the sale to remove exactly ${Number((product.totalCount - target).toFixed(3))} quantity from`);
+  let notes = [draft];
+  for (const source of product._returnSources) notes = updateSalesReturnSource(notes, source.noteKey, source.lineId, quantities[source.lineId]);
+  return notes[0] || null;
+}
+
+export function toggleImportProduct(baseDraft, draft, product, selected) {
+  const lines = new Set(product._returnSources.map(source => source.lineId));
+  const current = new Map((draft?.items || []).map(item => [item._voucherLineId, item]));
+  const items = baseDraft.items.flatMap(item => lines.has(item._voucherLineId)
+    ? selected ? [item] : [] : current.has(item._voucherLineId) ? [current.get(item._voucherLineId)] : []);
+  return items.length ? { ...baseDraft, items, selectedSaleIds: [...new Set(items.map(item => item._returnSourceSaleId))] } : null;
 }

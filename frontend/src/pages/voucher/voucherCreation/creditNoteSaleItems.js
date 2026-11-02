@@ -11,6 +11,7 @@ export function creditNoteItemsFromSale(items, quantities) {
       const sold = row.added !== false ? Number(row.count) || 0 : 0;
       const count = Number(quantities?.[itemIndex + ":" + rowIndex] ?? sold);
       if (!Number.isFinite(count) || count < 0) throw new Error("Return quantity must be a valid non-negative number");
+      if (count > sold) throw new Error(`You can make a credit note for only ${sold} ${item.unit || "units"} of ${item.product_name || "this product"} from this sale`);
       const ratio = sold > 0 ? count / sold : 0;
       return { ...row, count, actualCount: Number(((Number(row.actualCount ?? sold)) * ratio).toFixed(3)), added: count > 0, discountAmount: Number(row.discountAmount || 0) * ratio };
     });
@@ -48,4 +49,30 @@ export function combineSaleReturnItems(sales) {
     }
   }
   return [...groups.values()].map(recalculateDesktopItem);
+}
+
+// Keep original invoice quantities for display; prepare only the uncredited balance.
+export function returnableSales(sales, pendingNotes = []) {
+  const pending = new Map();
+  for (const note of pendingNotes.filter(note => note.status === "pending")) {
+    for (const item of note.items || []) {
+      const key = `${item._returnSourceSaleId}:${item._id}`;
+      pending.set(key, (pending.get(key) || 0) + Number(item.totalCount || 0));
+    }
+  }
+  return sales.map(sale => ({ ...sale, items: (sale.items || []).flatMap(item => {
+    const key = `${sale._id}:${item._id}`;
+    let reserved = pending.get(key) || 0;
+    const quantities = Object.fromEntries((item.GodownList || []).map((row, index) => {
+      const available = row.added !== false ? Number(row.availableReturnQuantity ?? row.count ?? 0) : 0;
+      const used = Math.min(available, reserved); reserved -= used;
+      return [`0:${index}`, Math.max(0, available - used)];
+    }));
+    pending.set(key, reserved);
+    return creditNoteItemsFromSale([item], quantities).map(product => ({ ...product,
+      _returnSoldQuantity: Number(item.soldQuantity ?? item.totalCount ?? (item.GodownList || []).reduce((sum, row) => sum + Number(row.count || 0), 0)),
+      _returnReturnedQuantity: Number(item.returnedQuantity || 0),
+      _returnAvailableQuantity: product.totalCount,
+    }));
+  }) }));
 }

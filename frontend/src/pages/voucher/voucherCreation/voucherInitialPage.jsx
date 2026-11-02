@@ -640,7 +640,9 @@ function VoucherInitialPage() {
           {desktopSales && ["sales", "creditNote", "saleOrder", "performaInvoice"].includes(voucherTypeFromRedux) && <div className="sales-party-values"><DesktopPriceLevel cmpId={cmp_id} locked={convertedFrom.length > 0} /></div>}
           {voucherTypeFromRedux === "sales" && lastSavedTransaction && <p className="sales-transaction-result" role="status">
             Last saved: {[lastSavedTransaction.sale && `Sale ${lastSavedTransaction.sale.salesNumber}`, lastSavedTransaction.creditNote && `Credit Note ${lastSavedTransaction.creditNote.creditNoteNumber}`].filter(Boolean).join(" · ")}
-            {" · Outstanding ₹ "}{Number(lastSavedTransaction.outstanding?.net || 0).toFixed(2)}
+            {(lastSavedTransaction.receipts || []).map(receipt => ` · Receipt ${receipt.receiptNumber} (₹ ${Number(receipt.enteredAmount).toFixed(2)})`).join("")}
+            {" · Sale outstanding ₹ "}{Number(lastSavedTransaction.outstanding?.sale || 0).toFixed(2)}
+            {lastSavedTransaction.creditNote && ` · Remaining credit ₹ ${Math.abs(Number(lastSavedTransaction.outstanding?.creditNote || 0)).toFixed(2)}`}
           </p>}
           </div>
 
@@ -689,7 +691,7 @@ function VoucherInitialPage() {
 
           {/* we will show receive amount section as button at header and footer if it is compulsory */}
 
-          {voucherTypeFromRedux !== "performaInvoice" && totalAmount > 0 && !enablePaymentSplittingAsCompulsory && (
+          {!["performaInvoice", "creditNote"].includes(voucherTypeFromRedux) && totalAmount > 0 && !enablePaymentSplittingAsCompulsory && (
             <ReceiveAmount />
           )}
 
@@ -703,7 +705,7 @@ function VoucherInitialPage() {
           </details>
           </div></>)}
 
-          {desktopSales ? <DesktopSalesTotals allowReceivePayment={voucherTypeFromRedux !== "performaInvoice"} onEditCharges={() => setOptionsTab("charges")} onOpenOptions={() => setOptionsTab("charges")} onApplyReceived={handleDesktopReceivedAmount} subtotal={subTotal} charges={totalAdditionalChargesFromRedux} total={totalAmount} received={{ cash: Number((paymentSplittingDataFromRedux || []).find(payment => payment.type === "cash")?.amount || 0), cashSource: (paymentSplittingDataFromRedux || []).find(payment => payment.type === "cash")?.ref_id || "", upi: Number((paymentSplittingDataFromRedux || []).find(payment => payment.type === "upi")?.amount || 0), upiSource: (paymentSplittingDataFromRedux || []).find(payment => payment.type === "upi")?.ref_id || "", cheque: Number((paymentSplittingDataFromRedux || []).find(payment => payment.type === "cheque")?.amount || 0), chequeSource: (paymentSplittingDataFromRedux || []).find(payment => payment.type === "cheque")?.ref_id || "" }} balance={Math.max(Number(totalAmount || 0) - (paymentSplittingDataFromRedux || []).filter(payment => payment.type !== "credit").reduce((sum, payment) => sum + Number(payment.amount || 0), 0), 0)} /> : <div className="flex justify-between items-center bg-white mt-2 p-3">
+          {desktopSales ? <DesktopSalesTotals allowReceivePayment={!["performaInvoice", "creditNote"].includes(voucherTypeFromRedux)} onEditCharges={() => setOptionsTab("charges")} onOpenOptions={() => setOptionsTab("charges")} onApplyReceived={handleDesktopReceivedAmount} subtotal={subTotal} charges={totalAdditionalChargesFromRedux} total={totalAmount} received={{ cash: Number((paymentSplittingDataFromRedux || []).find(payment => payment.type === "cash")?.amount || 0), cashSource: (paymentSplittingDataFromRedux || []).find(payment => payment.type === "cash")?.ref_id || "", upi: Number((paymentSplittingDataFromRedux || []).find(payment => payment.type === "upi")?.amount || 0), upiSource: (paymentSplittingDataFromRedux || []).find(payment => payment.type === "upi")?.ref_id || "", cheque: Number((paymentSplittingDataFromRedux || []).find(payment => payment.type === "cheque")?.amount || 0), chequeSource: (paymentSplittingDataFromRedux || []).find(payment => payment.type === "cheque")?.ref_id || "" }} balance={Math.max(Number(totalAmount || 0) - (paymentSplittingDataFromRedux || []).filter(payment => payment.type !== "credit").reduce((sum, payment) => sum + Number(payment.amount || 0), 0), 0)} /> : <div className="flex justify-between items-center bg-white mt-2 p-3">
             <p className="font-bold text-md">Total Amount</p>
             <div className="flex flex-col items-center">
               <p className="font-bold text-md">
@@ -724,7 +726,7 @@ function VoucherInitialPage() {
               enablePaymentSplittingAsCompulsory
             }
             openAdditionalTile={openAdditionalTile}
-            onReceivePayment={desktopSales && voucherTypeFromRedux !== "performaInvoice" ? () => setOptionsTab("payment") : undefined}
+            onReceivePayment={desktopSales && !["performaInvoice", "creditNote"].includes(voucherTypeFromRedux) ? () => setOptionsTab("payment") : undefined}
             desktopLabel={desktopSales ? (mode === "edit" ? "Update Transaction" : "Save Transaction") : undefined}
             loading={desktopSales ? submitLoading || isLoading : undefined}
           />

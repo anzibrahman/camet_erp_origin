@@ -5,7 +5,6 @@ import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { Search, Printer, Trash2, Pencil } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import ReturnSourcesControl from "./ReturnSourcesControl";
 import DesktopProductEntry from "./DesktopProductEntry";
 import EditItemVoucher from "./EditItemVoucher";
 import api from "../../../api/api";
@@ -38,11 +37,11 @@ export function DesktopSalesItems({ items, convertedFrom, voucherType }) {
               <td>{row + 1}</td><td>{item.product_code || "—"}</td>
               <td><div className="sales-item-description" title={`${item.product_name} · ${[batch.batch, batch.godown].filter(Boolean).join(" · ")} · Tax ${item.igst || 0}%${batch.discountType === "amount" ? ` · Discount ₹${money(batch.discountAmount)}` : batch.discountPercentage ? ` · Discount ${batch.discountPercentage}%` : ""}`}><strong>{item.product_name}</strong>{item._importedReturn && <span className="sales-import-return-badge">Return{item._returnSaved ? ` · ${item._returnNoteNumber}` : ""}</span>}<small>{[batch.batch, batch.godown].filter(Boolean).join(" · ")} · Tax {item.igst || 0}%{batch.discountType === "amount" ? ` · Discount ₹${money(batch.discountAmount)}` : batch.discountPercentage ? ` · Discount ${batch.discountPercentage}%` : ""}</small></div></td>
               <td>{item.unit}</td><td>{batch.count}</td><td>{money(batch.selectedPriceRate)}</td><td>{money(batch.individualTotal ?? item.total)}</td>
-              <td><div className="sales-row-actions">{item._importedReturn && <ReturnSourcesControl item={item} disabled={locked} />}<button type="button" aria-label={`Edit ${item.product_name} ${batch.godown || batch.batch || ""}`} disabled={locked || item._importedReturn} onClick={() => setEditing({ id: item._voucherLineId || item._id, index, name: item.product_name, godown: batch.godown, batch: batch.batch })}><Pencil size={15} /></button>
+              <td><div className="sales-row-actions">{!item._importedReturn && <><button type="button" aria-label={`Edit ${item.product_name} ${batch.godown || batch.batch || ""}`} disabled={locked || item._importedReturn} onClick={() => setEditing({ id: item._voucherLineId || item._id, index, name: item.product_name, godown: batch.godown, batch: batch.batch })}><Pencil size={15} /></button>
                 <button type="button" disabled={locked || item._importedReturn} aria-label={`Remove ${item.product_name}`} onClick={() => {
                   dispatch(item.hasGodownOrBatch ? removeGodownOrBatch({ id: item._voucherLineId || item._id, idx: index }) : removeItem(item._voucherLineId || item._id));
                   dispatch(resetPaymentSplit());
-                }}><Trash2 size={15} /></button></div></td>
+                }}><Trash2 size={15} /></button></>}</div></td>
             </tr>
           ))}</tbody>
         </table>

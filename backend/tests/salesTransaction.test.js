@@ -79,6 +79,7 @@ function harness(t, overrides = {}) {
         Primary_user_id: ids.owner, source: "creditNote", isCancelled: false, bill_pending_amt: -data.finalAmount, adjustmentAmount: 0 }));
       return doc;
     },
+    postReceipts: async () => [],
     settleCredit: settleCreditNoteSales, settleSale: async () => [],
     linkSources: async (req, note, usedSession) => {
       assert.equal(usedSession, session);
@@ -376,4 +377,112 @@ test("reference write failure rolls back credit note, sale and allocations",asyn
  const res=await h.run(); assert.equal(res.code,500);
  assert.equal(h.state().notes.length,0);assert.equal(h.state().sales.length,0);
  assert.equal(h.state().adjustments.length,0);assert.equal(h.state().remembered.length,0);
+});
+
+for (const received of [0, 500, 1000]) test(`mixed transaction receives ${received} against only the new sale`, async t => {
+  let receiptCalls = 0;
+  const h = harness(t, { postReceipts: async (req, saleBody, sale, user, session) => {
+    receiptCalls++;
+    assert.equal(session, h.session);
+    assert.equal(saleBody.finalAmount, 1000);
+    assert.equal(saleBody.finalOutstandingAmount, 1000 - received);
+    return [{ _id: id(), receiptNumber: "R-1", enteredAmount: received }];
+  } });
+  const data = body();
+  data.paymentSplittingData = [{ type: "cash", ref_id: id(), amount: received }];
+  const res = await h.run(data);
+  assert.equal(res.code, 201);
+  assert.equal(receiptCalls, received ? 1 : 0);
+  assert.equal(res.data.data.receipts.length, received ? 1 : 0);
+  assert.equal(res.data.data.outstanding.sale, 1000 - received);
+  assert.equal(h.state().adjustments[0].saleId, ids.source);
+  assert.equal(h.state().adjustments[0].allocatedAmount, 400);
+});
+
+test("receipt failure rolls back the sale, credit note and transaction numbers", async t => {
+  const h = harness(t, { postReceipts: async () => { throw new Error("Receipt write failed"); } });
+  const data = body(); data.paymentSplittingData = [{ type: "cash", ref_id: id(), amount: 500 }];
+  const res = await h.run(data);
+  assert.equal(res.code, 500);
+  assert.equal(h.state().sales.length, 0); assert.equal(h.state().notes.length, 0);
+  assert.equal(h.state().remembered.length, 0); assert.equal(h.state().adjustments.length, 0);
+  assert.deepEqual(h.events, ["rollback", "end"]);
+});
+
+import Receipt from "../models/receiptModel.js";
+import Settlement from "../models/settlementModel.js";
+import { postSalesTransactionReceipts } from "../helpers/salesTransactionReceipts.js";
+
+test("real split-payment receipts settle only the new sale once and retain its unpaid balance", async t => {
+  t.mock.method(console, "log", () => {});
+  const session = {}, saleId = id(), cash = id(), bank = id(), receiptSeries = id();
+  const sale = { _id: saleId, salesNumber: "S-NEW", date: new Date("2026-10-23") };
+  const ledger = { _id: id(), billId: saleId, bill_no: sale.salesNumber, bill_date: sale.date,
+    bill_amount: 1000, bill_pending_amt: 1000, source: "sales", appliedReceipts: [], appliedPayments: [], adjustmentAmount: 0 };
+  const saved = [], settlements = [];
+  let nextNumber = 1;
+  t.mock.method(Series, "findOne", async () => ({ series: [{ _id: receiptSeries, prefix: "R-", lastUsedNumber: nextNumber, widthOfNumericalPart: 4 }] }));
+  t.mock.method(Series, "updateOne", async () => { nextNumber++; });
+  t.mock.method(Receipt, "findOne", () => query(null));
+  t.mock.method(Receipt.prototype, "save", async function(options) {
+    assert.equal(options.session, session);
+    assert.equal(this.validateSync(), undefined);
+    saved.push(this); return this;
+  });
+  t.mock.method(Party, "findOne", filter => query({ _id: filter._id, partyName: "Payment account" }));
+  t.mock.method(Tally, "findOne", filter => {
+    assert.equal(filter.billId, saleId); assert.equal(filter.source, "sales");
+    return query(structuredClone(ledger));
+  });
+  t.mock.method(Tally, "find", filter => {
+    assert.deepEqual(filter.billId.$in, [saleId]);
+    return query([structuredClone(ledger)]);
+  });
+  t.mock.method(Tally, "bulkWrite", async (writes, options) => {
+    assert.equal(options.session, session);
+    for (const { updateOne } of writes) {
+      Object.assign(ledger, updateOne.update.$set);
+      ledger.appliedReceipts.push(updateOne.update.$push.appliedReceipts);
+    }
+  });
+  t.mock.method(Settlement, "create", async (rows, options) => {
+    assert.equal(options.session, session); settlements.push(...rows); return rows;
+  });
+  const user = { configurations: [{ organization: ids.company }], async save(options) { assert.equal(options.session, session); } };
+  const data = { ...body(), receiptSeriesId: receiptSeries, party: { ...party, accountGroup_id: id() },
+    paymentSplittingData: [{ type: "cash", ref_id: cash, amount: 200 }, { type: "upi", ref_id: bank, amount: 300 },
+      { type: "credit", ref_id: ids.party, amount: 500 }] };
+  const receipts = await postSalesTransactionReceipts({ owner: ids.owner, sUserId: ids.user }, data, sale, user, session);
+  assert.equal(receipts.length, 2); assert.equal(saved.length, 2);
+  assert.deepEqual(saved.map(receipt => receipt.enteredAmount), [200, 300]);
+  assert.deepEqual(saved.map(receipt => receipt.billData[0].billId), [saleId, saleId]);
+  assert.deepEqual(saved.map(receipt => receipt.remainingAmount), [800, 500]);
+  assert.equal(ledger.bill_pending_amt, 500);
+  assert.equal(ledger.appliedReceipts.length, 2);
+  assert.deepEqual(settlements.map(row => row.voucherType), ["receipt", "receipt"]);
+  assert.deepEqual(settlements.map(row => row.sourceType), ["cash", "bank"]);
+  assert.equal(settlements.reduce((sum, row) => sum + row.amount, 0), 500);
+});
+
+test("sale posting leaves the gross outstanding for receipts and avoids duplicate sale payment settlements", async t => {
+  t.mock.method(console, "log", () => {});
+  const session = {}, tally = [], directSettlements = [];
+  t.mock.method(Organization, "findById", () => query({ country: "India" }));
+  t.mock.method(Sales, "findOne", () => query(null));
+  t.mock.method(Sales.prototype, "save", async function(options) { assert.equal(options.session, session); return this; });
+  t.mock.method(Tally, "findOneAndUpdate", async (filter, update, options) => {
+    assert.equal(options.session, session); tally.push(update.$set); return update.$set;
+  });
+  t.mock.method(Settlement.prototype, "save", async function() { directSettlements.push(this); return this; });
+  const data = body(); data.party = { ...party, accountGroup_id: id() };
+  data.paymentSplittingData = [{ type: "cash", ref_id: id(), amount: 500 }];
+  const plan = prepareSalesTransaction(data);
+  const sale = await postTransactionSale({ owner: ids.owner, sUserId: ids.user }, {
+    ...plan.sale, salesNumber: "S-PAID", series_id: ids.saleSeries, usedSeriesNumber: 1, receiptSeriesId: id(),
+  }, { mobile: 123 }, session);
+  assert.equal(sale.finalAmount, 1000);
+  assert.equal(sale.finalOutstandingAmount, 500);
+  assert.equal(tally[0].bill_amount, 1000);
+  assert.equal(tally[0].bill_pending_amt, 1000);
+  assert.equal(directSettlements.length, 0);
 });

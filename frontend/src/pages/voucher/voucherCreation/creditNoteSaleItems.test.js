@@ -57,10 +57,18 @@ test("matching items retain separate godown and batch destinations", () => {
  assert.equal(result[0].totalCount, 8);
 });
 
-test("returns can exceed original quantity without changing source history", () => {
+test("returns cannot exceed original quantity and leave source history unchanged", () => {
  const source=[{...saleItems[0],GodownList:[{...saleItems[0].GodownList[0],count:1,actualCount:1}]}];
  const before=JSON.stringify(source);
- const result=creditNoteItemsFromSale(source,{'0:0':5});
- assert.equal(result[0].totalCount,5);assert.equal(result[0].totalActualCount,5);
- assert.equal(result[0].total,525);assert.equal(JSON.stringify(source),before);
+ assert.throws(() => creditNoteItemsFromSale(source,{'0:0':5}), /only 1/);
+ assert.equal(creditNoteItemsFromSale(source,{'0:0':1})[0].totalCount,1);
+ assert.equal(JSON.stringify(source),before);
 });
+
+ test("each stock row is capped even when the overall product quantity is within the sale total", () => {
+   const source = [{ ...saleItems[0], GodownList: [
+     { ...saleItems[0].GodownList[0], count: 1 },
+     { ...saleItems[0].GodownList[0], count: 4 },
+   ] }];
+   assert.throws(() => creditNoteItemsFromSale(source, {"0:0": 2, "0:1": 0}), /only 1/);
+ });

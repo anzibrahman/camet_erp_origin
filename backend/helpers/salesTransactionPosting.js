@@ -23,9 +23,9 @@ export async function postTransactionSale(req, body, user, session) {
     && !(payment.type === "credit" && payment.credit_reference_type === "party"));
   // Keep an outstanding row even when fully paid, so the combined result is explicit.
   await updateTallyData(body.orgId, body.salesNumber, sale._id, req.owner, body.party, body.finalAmount,
-    user.mobile, session, body.finalOutstandingAmount, body.selectedDate, "sales", "Dr", "Sales", false, !!payments.length);
+    user.mobile, session, body.receiptSeriesId ? body.finalAmount : body.finalOutstandingAmount, body.selectedDate, "sales", "Dr", "Sales", false, !!payments.length);
   // MongoDB transaction operations must use the shared session sequentially.
-  for (const payment of payments) await savePaymentSplittingDataInSources([payment], body.salesNumber, sale._id,
+  for (const payment of body.receiptSeriesId ? [] : payments) await savePaymentSplittingDataInSources([payment], body.salesNumber, sale._id,
     body.orgId, req.owner, user.mobile, "sale", sale.date, sale.party, session, body.selectedDate, "sales");
   return sale;
 }

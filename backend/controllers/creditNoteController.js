@@ -1,3 +1,5 @@
+import Sales from "../models/salesModel.js";
+import { validateCreditNoteReturnBalance } from "../helpers/creditNoteReturnBalance.js";
 import { beginAdjustmentEdit, finishAdjustmentEdit, settleCreditNoteSales, reverseVoucherAdjustments } from "../helpers/adjustmentHelper.js";
 import { voucherEditError } from "../helpers/voucherLifecycleHelper.js";
 import { prepareVoucherParty } from "../helpers/voucherPartyHelper.js";
@@ -46,6 +48,10 @@ export const createCreditNote = async (req, res) => {
       series_id,
     } = req.body;
 
+    if (req.body.selectedSaleIds?.length) {
+      req.body.returnAllocations = await validateCreditNoteReturnBalance(req, req.body, session);
+      req.body.returnSourceSaleIds = req.body.returnAllocations.map(row => row.saleId);
+    }
     const Secondary_user_id = req.sUserId;
 
     /// generate voucher number(creditNote number)
@@ -94,6 +100,12 @@ export const createCreditNote = async (req, res) => {
       session
     );
 
+    if (req.body.returnSourceSaleIds?.length) {
+      // Writing the source invoice also serializes competing returns in MongoDB.
+      await Sales.updateMany({ cmp_id: orgId, Primary_user_id: req.owner,
+        "party._id": party._id, _id: { $in: req.body.returnSourceSaleIds } },
+      { $addToSet: { returnCreditNoteIds: result._id } }, { session });
+    }
     /// update outstanding
     await updateTallyData(
       orgId,

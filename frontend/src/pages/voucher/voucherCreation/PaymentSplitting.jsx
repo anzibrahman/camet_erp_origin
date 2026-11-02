@@ -1,5 +1,6 @@
 /* eslint-disable react/prop-types */
-import { useEffect, useState } from "react";
+import { salesTransactionSubmission } from "./salesReturnDraft";
+import { useEffect, useState, useRef } from "react";
 import { ChevronDown, CircleDot } from "lucide-react";
 import TitleDiv from "@/components/common/TitleDiv";
 import { useDispatch, useSelector } from "react-redux";
@@ -11,6 +12,7 @@ import {
   addPaymentSplits,
   updateTotalValue,
   resetPaymentSplit,
+  removeAll,
 } from "../../../../slices/voucherSlices/commonVoucherSlice";
 import { toast } from "sonner";
 import { store } from "../../../../app/store";
@@ -41,6 +43,8 @@ function PaymentSplitting({ embedded = false, onSaved, onTransactionSaved } = {}
     },
   ]);
   const [submitLoading, setSubmitLoading] = useState(false);
+  const transactionSavingRef = useRef(false);
+  const transactionSubmissionRef = useRef(null);
   const [hasAutoSelected, setHasAutoSelected] = useState(false); // Track if auto-selection has occurred
 
   // Payment mode display information
@@ -406,6 +410,13 @@ function PaymentSplitting({ embedded = false, onSaved, onTransactionSaved } = {}
   };
 
   const submitHandler = async () => {
+    if (transactionSavingRef.current) return;
+    const combinedSalesSave = voucherTypeFromRedux === "sales" && modeFromRedux !== "edit";
+    const returnNotes = store.getState().commonVoucherSlice.salesReturnNotes || [];
+    if (!combinedSalesSave && returnNotes.some(note => note.status === "pending")) {
+      toast.error("Add returns when creating a new sale, rather than editing an existing sale.");
+      return;
+    }
     // Validation
     if (
       Object.keys(party).length === 0 &&
@@ -435,6 +446,7 @@ function PaymentSplitting({ embedded = false, onSaved, onTransactionSaved } = {}
       return;
     }
 
+    transactionSavingRef.current = true;
     setSubmitLoading(true);
     const voucherNumberTitle = getVoucherNumberTitle();
 
@@ -485,7 +497,11 @@ function PaymentSplitting({ embedded = false, onSaved, onTransactionSaved } = {}
 
       console.log(formData);
 
-      const endPoint = getApiEndPoint();
+      const endPoint = combinedSalesSave ? "createSalesTransaction" : getApiEndPoint();
+      if (combinedSalesSave) {
+        transactionSubmissionRef.current = salesTransactionSubmission(formData, returnNotes, transactionSubmissionRef.current);
+        formData = transactionSubmissionRef.current.payload;
+      }
       let params = {};
       if (voucherTypeFromRedux === "vanSale") {
         params = {
@@ -506,7 +522,8 @@ function PaymentSplitting({ embedded = false, onSaved, onTransactionSaved } = {}
       if (embedded && onTransactionSaved) {
         onTransactionSaved();
       } else {
-        navigate(`/sUsers/${voucherTypeFromRedux}Details/${res.data.data._id}`, {
+        const savedId = combinedSalesSave ? res.data.data.sale._id : res.data.data._id;
+        navigate(`/sUsers/${voucherTypeFromRedux}Details/${savedId}`, {
           state: { from: location?.state?.from || "null" },
         });
       }
@@ -514,11 +531,15 @@ function PaymentSplitting({ embedded = false, onSaved, onTransactionSaved } = {}
       queryClient.invalidateQueries({
         queryKey: ["todaysTransaction", cmp_id, isAdmin],
       });
-      // dispatch(removeAll());
+      if (combinedSalesSave) {
+        transactionSubmissionRef.current = null;
+        dispatch(removeAll());
+      }
     } catch (error) {
       toast.error(error.response?.data?.message || "Error creating sale");
       console.log(error);
     } finally {
+      transactionSavingRef.current = false;
       setSubmitLoading(false);
     }
   };
@@ -531,6 +552,10 @@ function PaymentSplitting({ embedded = false, onSaved, onTransactionSaved } = {}
   };
 
   console.log(paymentSplittingData);
+
+  if (voucherTypeFromRedux === "creditNote") {
+    return <div className="p-4"><p>Receive payment is disabled for credit notes.</p><button type="button" onClick={() => navigate(-1)}>Back to credit note</button></div>;
+  }
 
   if (voucherTypeFromRedux === "performaInvoice") {
     return <div className="p-4"><p>Proforma invoices do not receive payments.</p><button type="button" onClick={() => navigate(-1)}>Back to invoice</button></div>;

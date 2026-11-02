@@ -1,3 +1,5 @@
+import { validateCreditNoteReturnBalance } from "../helpers/creditNoteReturnBalance.js";
+import { postSalesTransactionReceipts } from "../helpers/salesTransactionReceipts.js";
 import { createHash } from "node:crypto";
 import mongoose from "mongoose";
 import Organization from "../models/OragnizationModel.js";
@@ -66,15 +68,7 @@ export async function validateTransactionProducts(req, plan, session) {
   if (sales.length !== plan.sourceSaleIds.length) throw transactionError("A source sale is cancelled or does not belong to this customer/company");
   const soldProducts = new Set(sales.flatMap(sale => sale.items || []).map(item => String(item._id)));
   if (plan.creditNote.items.some(item => !soldProducts.has(String(item._id)))) throw transactionError("A return product is missing from the selected source sales");
-  for (const allocation of plan.creditNote.returnAllocations || []) {
-    const source = sales.find(sale => String(sale._id) === String(allocation.saleId));
-    for (const productId of new Set(allocation.products.map(product => String(product.productId)))) {
-      const sold = (source?.items || []).filter(item => String(item._id) === productId).reduce((sum, item) => sum +
-        (item.GodownList || []).filter(row => row.added !== false).reduce((qty, row) => qty + Number(row.count || 0), 0), 0);
-      const returned = allocation.products.filter(product => String(product.productId) === productId).reduce((sum, product) => sum + product.quantity, 0);
-      if (returned > sold + 0.000001) throw transactionError("Returned quantity exceeds this source sale's product quantity");
-    }
-  }
+  plan.creditNote.returnAllocations = await validateCreditNoteReturnBalance(req, plan.creditNote, session, { sales });
 }
 
 async function transactionOutstanding(req, sale, creditNote, session) {
@@ -95,7 +89,7 @@ const defaults = {
   startSession: () => mongoose.startSession(), init: () => Transaction.init(),
   authorize: authorizeSalesTransaction, series: transactionSeries, validateProducts: validateTransactionProducts,
   allocate: allocateTransactionNumber, applyStock: applyTransactionStock,
-  postSale: postTransactionSale, postCreditNote: postTransactionCreditNote,
+  postSale: postTransactionSale, postCreditNote: postTransactionCreditNote, postReceipts: postSalesTransactionReceipts,
   settleCredit: settleCreditNoteSales, outstanding: transactionOutstanding,
   linkSources: linkReturnSources,
   findReplay: (scope, session) => Transaction.findOne(scope).session(session).lean(),
@@ -133,7 +127,9 @@ export function makeSalesTransactionController(overrides = {}) {
         let saleBody = null, creditBody = null;
         if (plan.sale) {
           const seriesId = await deps.series(req, "sales", req.body.series_id, user, session);
-          saleBody = await deps.allocate({ ...plan.sale, party }, seriesId, session);
+          const hasReceived = party.partyType === "party" && plan.sale.paymentSplittingData.some(payment => payment.type !== "credit" && Number(payment.amount) > 0);
+          const receiptSeriesId = hasReceived ? await deps.series(req, "receipt", req.body.receiptSeriesId, user, session) : null;
+          saleBody = await deps.allocate({ ...plan.sale, party, receiptSeriesId }, seriesId, session);
         }
         if (plan.creditNote) {
           const seriesId = await deps.series(req, "creditNote", req.body.creditNoteSeriesId, user, session);
@@ -141,6 +137,7 @@ export function makeSalesTransactionController(overrides = {}) {
         }
         await deps.applyStock(saleBody, creditBody, session);
         const sale = saleBody ? await deps.postSale(req, saleBody, user, session) : null;
+        const receipts = saleBody?.receiptSeriesId ? await deps.postReceipts(req, saleBody, sale, user, session) : [];
         const creditNote = creditBody ? await deps.postCreditNote(req, creditBody, user, session) : null;
         if (creditNote) await deps.linkSources(req, creditNote, session);
         const actor = req.sUserId || req.owner;
@@ -150,7 +147,7 @@ export function makeSalesTransactionController(overrides = {}) {
         result = JSON.parse(JSON.stringify({
           sale: sale ? { _id: sale._id, salesNumber: sale.salesNumber, series_id: sale.series_id, finalAmount: sale.finalAmount } : null,
           creditNote: creditNote ? { _id: creditNote._id, creditNoteNumber: creditNote.creditNoteNumber, series_id: creditNote.series_id, finalAmount: creditNote.finalAmount } : null,
-          adjustments, outstanding,
+          receipts, adjustments, outstanding,
         }));
         await deps.remember({ ...replayScope, Secondary_user_id: req.sUserId, payloadHash, result }, session);
       });
