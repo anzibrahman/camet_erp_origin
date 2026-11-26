@@ -194,7 +194,7 @@ else {
 
   return (
     <div
-      className={`grid grid-cols-2 md:grid-cols-4 p-6 lg:px-6 gap-4 md:gap-6  w-full md:w-6.5/12  `}
+      className={`grid grid-cols-2 ${ cards.length >= 5 ? "md:grid-cols-5" : "md:grid-cols-4" } p-6 lg:px-6 gap-4 md:gap-6  w-full md:w-6.5/12  `}
     >
       {cards.map((card, index) => (
         <div
