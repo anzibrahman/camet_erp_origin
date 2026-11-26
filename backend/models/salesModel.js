@@ -399,6 +399,9 @@ salesSchema.index(
 // 3. Most common query pattern (company + date sorting)
 salesSchema.index({ cmp_id: 1, date: -1 });
 
+// Restaurant KOT-to-sale lookup by the originating voucher number.
+salesSchema.index({ cmp_id: 1, "convertedFrom.voucherNumber": 1 });
+
 // 4. Party reference queries
 salesSchema.index({ cmp_id: 1, "party._id": 1 });
 

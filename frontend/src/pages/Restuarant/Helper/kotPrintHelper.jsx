@@ -1,6 +1,7 @@
 import jsPDF from "jspdf";
 import {toast} from "sonner";
 import qz from "qz-tray";
+import { configureQzSecurity } from "./qzSecurity";
 
 // Constants - Optimized for thermal printers
 const THERMAL_WIDTH = 58; // Reduced to 58mm for better fit
@@ -89,6 +90,7 @@ async function printKot(pdf, printerName, jobName = "KOT") {
 
 let qzConnection;
 async function connectQz() {
+  configureQzSecurity();
   if (qz.websocket.isActive()) return;
   if (!qzConnection) {
     qzConnection = qz.websocket.connect().finally(() => {

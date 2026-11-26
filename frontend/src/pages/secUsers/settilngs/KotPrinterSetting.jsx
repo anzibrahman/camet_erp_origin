@@ -4,6 +4,7 @@ import qz from "qz-tray";
 import { toast } from "sonner";
 import api from "@/api/api";
 import { setSecSelectedOrganization } from "../../../../slices/secSelectedOrgSlice";
+import { configureQzSecurity } from "@/pages/Restuarant/Helper/qzSecurity";
 export default function KotPrinterSetting() {
   const dispatch = useDispatch()
   const {_id : companyId  , configurations } = useSelector(
@@ -50,6 +51,7 @@ export default function KotPrinterSetting() {
     setLoaded(false);
 
     try {
+      configureQzSecurity();
       if (!qz.websocket.isActive()) {
         await qz.websocket.connect();
       }

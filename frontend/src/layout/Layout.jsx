@@ -17,9 +17,13 @@ export const useSidebar = () => {
 const Layout = ({ children }) => {
   const location = useLocation();
   const [showSidebar, setShowSidebar] = useState(false);
+  const isRestaurantDashboard =
+    location.pathname === "/sUsers/RestaurantDashboard";
   const handleToggleSidebar = () => {
-    if (window.innerWidth < 768) {
-      setShowSidebar(!showSidebar);
+    const isCompactPosScreen =
+      isRestaurantDashboard && window.innerWidth < 1280;
+    if (isCompactPosScreen || window.innerWidth < 768) {
+      setShowSidebar((isVisible) => !isVisible);
     }
   };
 
@@ -46,7 +50,13 @@ const Layout = ({ children }) => {
         />
       );
     } else if (location.pathname.includes("/sUsers/")) {
-      return <SidebarSec showBar={showSidebar} handleToggleSidebar={handleToggleSidebar} />;
+      return (
+        <SidebarSec
+          showBar={showSidebar}
+          handleToggleSidebar={handleToggleSidebar}
+          hideOnDesktop={isRestaurantDashboard}
+        />
+      );
     } else if (isAdmin) {
       
       return (

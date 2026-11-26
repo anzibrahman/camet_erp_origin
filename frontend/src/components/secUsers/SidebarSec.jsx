@@ -37,7 +37,7 @@ import LogoutModal from "../common/modal/LogoutModal";
 import { isAdminUser } from "@/utils/permissions";
 import SubscriptionExpiryAlert from "@/components/common/SubscriptionExpiryAlert";
 
-function SidebarSec({ showBar }) {
+function SidebarSec({ showBar, hideOnDesktop = false }) {
   const [showSidebar, setShowSidebar] = useState(false);
   const [userData, setUserData] = useState({});
   const [dropdown, setDropdown] = useState(false);
@@ -209,10 +209,11 @@ function SidebarSec({ showBar }) {
   }, [refreshOrganizations]);
 
   useEffect(() => {
-    if (window.innerWidth < 768) {
-      setShowSidebar(!showSidebar);
+    const isCompactPosScreen = hideOnDesktop && window.innerWidth < 1280;
+    if (isCompactPosScreen || window.innerWidth < 768) {
+      setShowSidebar(showBar);
     }
-  }, [showBar]);
+  }, [showBar, hideOnDesktop]);
 
   useEffect(() => {
     if (window.innerWidth < 768) {
@@ -221,7 +222,7 @@ function SidebarSec({ showBar }) {
   }, []);
 
   const handleSidebarItemClick = (newTab) => {
-    if (window.innerWidth < 768) {
+    if (hideOnDesktop || window.innerWidth < 768) {
       setShowSidebar(false);
     }
 
@@ -369,7 +370,9 @@ function SidebarSec({ showBar }) {
         className={`${
           showSidebar
             ? "z-50 absolute h-[125vh] transform translate-x-0"
-            : "-translate-x-full md:translate-x-0 z-50 absolute md:relative"
+            : hideOnDesktop
+              ? "-translate-x-full xl:translate-x-0 z-50 absolute xl:relative"
+              : "-translate-x-full md:translate-x-0 z-50 absolute md:relative"
         } ${
           open ? "w-64" : "w-28"
         } transition-all duration-700 ease-in-out flex flex-col h-screen p-1 bg-[#0b1d34] overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-track-[#0B1D34] scrollbar-thumb-[#30435e]`}

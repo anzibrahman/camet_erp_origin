@@ -43,12 +43,19 @@ console.log(optionsData)
         hsn: editData.hsn_code,
         imageUrl: editData.product_image || "" // Set existing image URL
       })
-      let updatedPriceLevel = editData.Priceleveles.map((item) => ({
+      const updatedPriceLevel = (Array.isArray(editData.Priceleveles)
+        ? editData.Priceleveles
+        : []
+      ).map((item) => ({
         pricelevel: item.pricelevel?._id,
         pricerate: item.pricerate
       }))
       // console.log("updatedPriceLevel", updatedPriceLevel);
-      setPriceLevelRows(updatedPriceLevel)
+      setPriceLevelRows(
+        updatedPriceLevel.length > 0
+          ? updatedPriceLevel
+          : [{ pricelevel: "", pricerate: "" }]
+      )
 
       // Set image preview for existing data
       if (editData.product_image) {

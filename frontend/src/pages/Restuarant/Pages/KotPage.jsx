@@ -212,8 +212,6 @@ const permission = useSelector((state) => state.permissionData?.permissions);
       );
       return res.data;
     },
-    refetchInterval: 10000, // ✅ auto-refresh every 10 seconds
-    refetchIntervalInBackground: true, // ✅ refreshes even when tab is not focused
     staleTime: 5000,
     enabled: !!cmp_id,
   });

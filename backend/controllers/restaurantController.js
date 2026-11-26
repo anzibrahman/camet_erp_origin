@@ -693,8 +693,6 @@ export const getKotDash = async (req, res) => {
       fromDate = new Date().toISOString().slice(0, 10);
     }
 
-    console.log("dateManagement", fromDate, date);
-
     const start = new Date(`${fromDate}T00:00:00.000Z`);
     const end = new Date(`${date}T23:59:59.999Z`);
 
@@ -714,76 +712,94 @@ export const getKotDash = async (req, res) => {
       })
       .lean();
 
-    const recalculatedKot = await Promise.all(
-      kot.map(async (kotDoc) => {
-        const findSpecificSale = await salesModel.findOne({
-          cmp_id,
-          "convertedFrom.voucherNumber": kotDoc.voucherNumber,
-        });
-        console.log("findSpecificSale", findSpecificSale);
-        if (kotDoc.paymentCompleted) {
-          return {
-            ...kotDoc,
-            items: kotDoc.items || [], // ← directly from DB, no recalculation
-            total: findSpecificSale?.subTotal || 0, // ← directly from DB
-            salesNumber: findSpecificSale?.salesNumber,
-          };
-        }
-        const recalculatedItems = (kotDoc?.items || [])
-          .map((item) => recalculateKotItem(item))
-          .filter(Boolean);
+    const voucherNumbers = [
+      ...new Set(kot.map((kotDoc) => kotDoc.voucherNumber).filter(Boolean)),
+    ];
 
-        console.log("recalculatedItems", recalculatedItems);
+    const sales = voucherNumbers.length
+      ? await salesModel
+          .find({
+            cmp_id,
+            "convertedFrom.voucherNumber": { $in: voucherNumbers },
+          })
+          .select("subTotal salesNumber convertedFrom.voucherNumber")
+          .lean()
+      : [];
 
-        const kotTotal = recalculatedItems.reduce(
-          (sum, item) => sum + Number(item?.total || 0),
-          0,
-        );
+    const salesByVoucherNumber = new Map();
+    sales.forEach((sale) => {
+      (Array.isArray(sale.convertedFrom) ? sale.convertedFrom : []).forEach(
+        (convertedFrom) => {
+          const voucherNumber = convertedFrom?.voucherNumber;
+          if (voucherNumber && !salesByVoucherNumber.has(voucherNumber)) {
+            salesByVoucherNumber.set(voucherNumber, sale);
+          }
+        },
+      );
+    });
 
-        const totalTaxableAmount = recalculatedItems.reduce(
-          (sum, item) => sum + Number(item?.taxableAmount || 0),
-          0,
-        );
-
-        const totalCgstAmt = recalculatedItems.reduce(
-          (sum, item) => sum + Number(item?.totalCgstAmt || 0),
-          0,
-        );
-
-        const totalSgstAmt = recalculatedItems.reduce(
-          (sum, item) => sum + Number(item?.totalSgstAmt || 0),
-          0,
-        );
-
-        const totalIgstAmt = recalculatedItems.reduce(
-          (sum, item) => sum + Number(item?.totalIgstAmt || 0),
-          0,
-        );
-
-        const totalCessAmt = recalculatedItems.reduce(
-          (sum, item) => sum + Number(item?.totalCessAmt || 0),
-          0,
-        );
-
-        const totalAddlCessAmt = recalculatedItems.reduce(
-          (sum, item) => sum + Number(item?.totalAddlCessAmt || 0),
-          0,
-        );
-
+    const recalculatedKot = kot.map((kotDoc) => {
+      const findSpecificSale = salesByVoucherNumber.get(kotDoc.voucherNumber);
+      if (kotDoc.paymentCompleted) {
         return {
           ...kotDoc,
-          items: recalculatedItems,
-          total: round2(kotTotal),
-          taxableAmount: round2(totalTaxableAmount),
-          totalCgstAmt: round2(totalCgstAmt),
-          totalSgstAmt: round2(totalSgstAmt),
-          totalIgstAmt: round2(totalIgstAmt),
-          totalCessAmt: round2(totalCessAmt),
-          totalAddlCessAmt: round2(totalAddlCessAmt),
+          items: kotDoc.items || [], // ← directly from DB, no recalculation
+          total: findSpecificSale?.subTotal || 0, // ← directly from DB
           salesNumber: findSpecificSale?.salesNumber,
         };
-      }),
-    );
+      }
+      const recalculatedItems = (kotDoc?.items || [])
+        .map((item) => recalculateKotItem(item))
+        .filter(Boolean);
+
+      const kotTotal = recalculatedItems.reduce(
+        (sum, item) => sum + Number(item?.total || 0),
+        0,
+      );
+
+      const totalTaxableAmount = recalculatedItems.reduce(
+        (sum, item) => sum + Number(item?.taxableAmount || 0),
+        0,
+      );
+
+      const totalCgstAmt = recalculatedItems.reduce(
+        (sum, item) => sum + Number(item?.totalCgstAmt || 0),
+        0,
+      );
+
+      const totalSgstAmt = recalculatedItems.reduce(
+        (sum, item) => sum + Number(item?.totalSgstAmt || 0),
+        0,
+      );
+
+      const totalIgstAmt = recalculatedItems.reduce(
+        (sum, item) => sum + Number(item?.totalIgstAmt || 0),
+        0,
+      );
+
+      const totalCessAmt = recalculatedItems.reduce(
+        (sum, item) => sum + Number(item?.totalCessAmt || 0),
+        0,
+      );
+
+      const totalAddlCessAmt = recalculatedItems.reduce(
+        (sum, item) => sum + Number(item?.totalAddlCessAmt || 0),
+        0,
+      );
+
+      return {
+        ...kotDoc,
+        items: recalculatedItems,
+        total: round2(kotTotal),
+        taxableAmount: round2(totalTaxableAmount),
+        totalCgstAmt: round2(totalCgstAmt),
+        totalSgstAmt: round2(totalSgstAmt),
+        totalIgstAmt: round2(totalIgstAmt),
+        totalCessAmt: round2(totalCessAmt),
+        totalAddlCessAmt: round2(totalAddlCessAmt),
+        salesNumber: findSpecificSale?.salesNumber,
+      };
+    });
 
     res.status(200).json({
       success: true,

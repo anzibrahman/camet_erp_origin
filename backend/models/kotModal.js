@@ -184,4 +184,6 @@ cancelledByName: {
   },
 );
 
+kotSchema.index({ cmp_id: 1, createdAt: 1 });
+
 export default mongoose.model("Kot", kotSchema);

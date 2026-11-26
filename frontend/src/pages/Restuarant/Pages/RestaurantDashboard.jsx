@@ -28,6 +28,7 @@ import {
   BarChart2,
   LayoutGrid,
   ListChecks,
+  Loader2,
 } from "lucide-react";
 
 import TableSelection from "../Pages/TableSelection";
@@ -38,6 +39,7 @@ import { useSelector } from "react-redux";
 import api from "@/api/api";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import { useSidebar } from "@/layout/Layout";
 import useFetch from "@/customHook/useFetch";
 import { generateAndPrintKOT } from "../Helper/kotPrintHelper";
 import { taxCalculatorForRestaurant } from "@/pages/Hotel/Helper/taxCalculator";
@@ -49,6 +51,7 @@ import { applyBatchEdit } from "@/pages/Restuarant/Helper/RestaurantDashBoardHel
 import RestaurantReportsMenu from "../components/RestaurantReports";
 import qz from "qz-tray";
 const RestaurantPOS = () => {
+  const sidebar = useSidebar();
   const [selectedCuisine, setSelectedCuisine] = useState("");
   const [selectedSubcategory, setSelectedSubcategory] = useState("");
   const [orderItems, setOrderItems] = useState([]);
@@ -104,6 +107,7 @@ const RestaurantPOS = () => {
   const [selectedAdditionalCharge, setSelectedAdditionalCharge] =
     useState(null);
   const [showParentKots, setShowParentKots] = useState(false);
+  const [isGeneratingKot, setIsGeneratingKot] = useState(false);
   const [
     additionalChargeDataBasedOnSelection,
     setAdditionalChargeDataBasedOnSelection,
@@ -111,6 +115,7 @@ const RestaurantPOS = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const observerTarget = useRef(null);
   const scrollContainerRef = useRef(null);
+  const isGeneratingKotRef = useRef(false);
   const scroll = (direction) => {
     if (scrollContainerRef.current) {
       const scrollAmount = 150;
@@ -269,6 +274,12 @@ const RestaurantPOS = () => {
   );
   const config = configurations?.[0] || {};
   const orderTypesConfig = config.orderTypes || {};
+  const hasAlternativeOrderType = [
+    "dineIn",
+    "takeaway",
+    "delivery",
+    "roomService",
+  ].some((type) => orderTypesConfig[type] !== false);
   const selectedKotPrinter = configurations?.[0]?.kotPrinter || "";
 
   const getDefaultOrderType = () => {
@@ -1065,6 +1076,14 @@ const RestaurantPOS = () => {
     parentKot,
     roomSelected,
   ) => {
+    if (isGeneratingKotRef.current) return;
+
+    isGeneratingKotRef.current = true;
+    setIsGeneratingKot(true);
+    let newOrder;
+    let kotSaved = false;
+
+    try {
     let roomObj = roomSelected ? roomSelected : roomDetails;
     let updatedItems = [];
     let orderCustomerDetails = {
@@ -1199,7 +1218,7 @@ const RestaurantPOS = () => {
 
     console.log(orderCustomerDetails);
 
-    const newOrder = {
+    newOrder = {
       id: orderNumber,
       items: [...finalProductData],
       type: orderType,
@@ -1219,12 +1238,16 @@ const RestaurantPOS = () => {
         ? `/api/sUsers/editKOT/${cmp_id}/${kotDataForEdit._id}`
         : `/api/sUsers/generateKOT/${cmp_id}`;
 
-    try {
       let response = await api.post(url, newOrder, {
         withCredentials: true,
       });
       if (response.data?.success) {
+        kotSaved = true;
+        // Close order-detail overlays before opening either QZ or the browser print dialog.
+        setShowKOTModal(false);
+        setShowFullTableSelection(false);
         handleKotPrint(response.data?.data, roomObj);
+        setOrderItems([]);
         console.log(selectedTableNumber);
         if (orderType === "dine-in") {
           await api.put(
@@ -1243,28 +1266,41 @@ const RestaurantPOS = () => {
       }
     } catch (error) {
       console.log(error);
-      toast.error(error.response.data.message);
-    } finally {
-      setOrders([...orders, newOrder]);
-      setOrderItems([]);
-      setOrderNumber(orderNumber + 1);
-      setShowKOTModal(false);
-      setIsEdit(false);
-      setCustomerDetails({
-        name: "",
-        phone: "",
-        address: "",
-        tableNumber: "10",
-      });
-      setSearch("");
-      setShowResults(true);
-      setRoomDetails({});
-      toast.success(
-        kotDataForEdit
-          ? "KOT updated successfully!"
-          : "KOT generated successfully!",
+      toast.error(
+        error.response?.data?.error ||
+          error.response?.data?.message ||
+          "Unable to generate KOT.",
       );
-      navigate(location.pathname, { replace: true, state: {} });
+    } finally {
+      console.log(newOrder,kotSaved)
+      if (kotSaved && newOrder) {
+
+        setOrders((currentOrders) => [...currentOrders, newOrder]);
+        setOrderNumber((currentOrderNumber) => currentOrderNumber + 1);
+        setShowKOTModal(false);
+        setIsEdit(false);
+        setCustomerDetails({
+          name: "",
+          phone: "",
+          address: "",
+          tableNumber: "10",
+        });
+        setSearch("");
+        setShowResults(true);
+        setRoomDetails({});
+        toast.success(
+          kotDataForEdit
+            ? "KOT updated successfully!"
+            : "KOT generated successfully!",
+        );
+        navigate(location.pathname, { replace: true, state: {} });
+      }
+
+      // Keep Confirm KOT locked until the modal-close update has rendered.
+      requestAnimationFrame(() => {
+        isGeneratingKotRef.current = false;
+        setIsGeneratingKot(false);
+      });
     }
   };
 
@@ -1438,6 +1474,15 @@ const RestaurantPOS = () => {
             <div className="flex items-center justify-between gap-2 md:gap-3">
               {/* Left Section - Logo & Title */}
               <div className="flex items-center gap-2 flex-shrink-0">
+                <button
+                  type="button"
+                  aria-label="Open main navigation"
+                  title="Main navigation"
+                  onClick={sidebar?.handleToggleSidebar}
+                  className="p-2 xl:hidden hover:bg-white/10 rounded-lg transition-colors duration-200"
+                >
+                  <Menu className="w-5 h-5" />
+                </button>
                 <button
                   className="md:hidden p-1.5 hover:bg-white/10 rounded-lg transition-colors duration-200"
                   onClick={() => setShowSidebar(!showSidebar)}
@@ -1789,7 +1834,7 @@ const RestaurantPOS = () => {
                           subcategory.name,
                         )
                       }
-                      className={`w-full text-left px-3 py-2.5 mb-2 rounded-xl font-semibold transition-all duration-300 flex items-center gap-2 border hover:scale-[1.02] hover:translate-x-1 transform group text-xs
+                        className={`w-full text-left px-3 py-2.5 mb-2 rounded-xl font-semibold transition-all duration-300 flex items-center gap-2 border hover:scale-[1.02] hover:translate-x-1 transform group text-xs
                     ${
                       selectedSubcategory?.subcategoryId === subcategory._id
                         ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-transparent shadow-lg shadow-indigo-500/25"
@@ -1866,7 +1911,7 @@ const RestaurantPOS = () => {
                 </div>
               ) : (
                 <>
-                  <div className="mb-3 flex items-center justify-between">
+                  <div className="mb-3 flex items-center justify-between gap-2">
                     <h3 className="text-sm font-bold text-gray-700 flex items-center gap-1.5">
                       <span className="w-2 h-2 bg-gradient-to-r from-indigo-500 to-blue-500 rounded-full"></span>
                       {selectedSubcategory
@@ -1876,7 +1921,7 @@ const RestaurantPOS = () => {
                           : `All Items (${menuItems.length})`}
                     </h3>
 
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
                       {/* Secondary Action - Tag To Kot */}
                       {orderItems.length > 0 && (
                         <button
@@ -2232,7 +2277,8 @@ const RestaurantPOS = () => {
                       </span>
                     </button>
                   )}
-                  {orderTypesConfig?.directSale !== false && (
+                  {orderTypesConfig?.directSale !== false &&
+                    hasAlternativeOrderType && (
                     <button
                       onClick={() => {
                         console.log("Direct Sale button clicked");
@@ -2279,8 +2325,7 @@ const RestaurantPOS = () => {
               onClick={() => {
                 setShowFullTableSelection(false);
                 if (
-                  !kotDataForEdit &&
-                  Object.keys(kotDataForEdit).length <= 0
+                  !kotDataForEdit
                 ) {
                   setRoomDetails({});
                 }
@@ -2291,8 +2336,7 @@ const RestaurantPOS = () => {
                 onClick={() => {
                   setShowFullTableSelection(false);
                   if (
-                    !kotDataForEdit &&
-                    Object.keys(kotDataForEdit).length <= 0
+                    !kotDataForEdit
                   ) {
                     setRoomDetails({});
                   }
@@ -2532,9 +2576,17 @@ const RestaurantPOS = () => {
               </button>
               <button
                 onClick={generateKOT}
-                className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg shadow-indigo-500/25"
+                disabled={isGeneratingKot}
+                className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg shadow-indigo-500/25 disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:scale-100"
               >
-                Confirm KOT
+                {isGeneratingKot ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Generating...
+                  </span>
+                ) : (
+                  "Confirm KOT"
+                )}
               </button>
             </div>
           </div>

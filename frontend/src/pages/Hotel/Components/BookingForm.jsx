@@ -186,6 +186,11 @@ function BookingForm({
     pinCode: "",
     detailedAddress: "",
     mobileNumber: "",
+    guestName: "",
+    guestId: "",
+    guestPinCode: "",
+    guestDetailedAddress: "",
+    guestMobileNumber: "",
     selectedRoomPrice: "",
     priceLevelRate: "",
     priceLevelId: "",
@@ -1402,7 +1407,7 @@ function BookingForm({
     let state = formData.state;
     let pinCode = formData.pinCode;
     let detailedAddress = formData.detailedAddress;
-    let mobileNumber = formData.mobileNumber;
+    let mobileNumber = formData.mobileNumber || formData.guestMobileNumber;
     let guestName = formData?.guestName;
     let guestId = formData?.guestId || "";
     let guestCountry = formData?.guestCountry;
@@ -1424,7 +1429,10 @@ function BookingForm({
         const dataObject = {
           accountGroup: "",
           partyName: formData.customerName,
-          mobileNumber: formData.mobileNumber,
+          // A new guest is often also the billing customer. The mobile input
+          // is collected in the guest section, so use it when billing mobile
+          // has not been entered separately.
+          mobileNumber: formData.mobileNumber || guestMobileNumber || "",
           emailID: "",
           gstNo: "",
           panNo: "",
@@ -1992,7 +2000,7 @@ function BookingForm({
                               </label>
                               <input
                                 name="guestMobileNumber"
-                                value={formData.guestMobileNumber}
+                                value={formData.guestMobileNumber || ""}
                                 onChange={handleChange}
                                 className="w-full border px-3 py-2 rounded text-sm"
                               />

@@ -5,6 +5,7 @@ import secondaryUsers from './routes/secondaryUserRouters.js'
 import admin from './routes/adminRoute.js'
 import tally from './routes/tallyRoute.js'
  import kotRoutes from './routes/kotRoutes.js'
+import qzRoutes from './routes/qzRoutes.js'
 
 import connectDB from "./config/db.js";
 import cors from 'cors'
@@ -38,6 +39,7 @@ app.use("/api/sUsers",secondaryUsers)
 app.use("/api/admin",admin)
 app.use("/api/tally",tally)
 app.use("/api/kot", kotRoutes);
+app.use("/api/qz", qzRoutes);
 
 if(process.env.NODE_ENV==="production"){
   console.log(process.env.NODE_ENV);

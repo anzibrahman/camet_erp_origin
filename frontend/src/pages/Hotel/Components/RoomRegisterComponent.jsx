@@ -26,13 +26,18 @@ function RoomRegisterComponent({ pageName, optionsData, sendToParent , editData 
       hsn: editData.hsn?._id || "",
     });
     
-    // FIX: priceLevel data structure needs mapping
-    if (editData.priceLevel && Array.isArray(editData.priceLevel)) {
+    // Keep one editable row when the room does not yet have a price level.
+    // Mapping an empty array directly would render no row, leaving nothing to select.
+    if (Array.isArray(editData.priceLevel)) {
+      const existingPriceLevels = editData.priceLevel.map((item) => ({
+        priceLevel: item.priceLevel?._id || "",
+        priceRate: item.priceRate || "",
+      }));
+
       setPriceLevelRows(
-        editData.priceLevel.map(item => ({
-          priceLevel: item.priceLevel?._id || "",
-          priceRate: item.priceRate || ""
-        }))
+        existingPriceLevels.length > 0
+          ? existingPriceLevels
+          : [{ priceLevel: "", priceRate: "" }],
       );
     }
     
