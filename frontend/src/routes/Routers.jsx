@@ -558,6 +558,14 @@ const Routers = () => {
           }
         ></Route>
         <Route
+          path="/sUsers/BarDashboard"
+          element={
+            <ProtectedSecRoute>
+              <RestaurantDashboard />
+            </ProtectedSecRoute>
+          }
+        ></Route>
+        <Route
           path="/sUsers/invoice"
           element={
             <ProtectedSecRoute>

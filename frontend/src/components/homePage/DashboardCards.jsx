@@ -117,6 +117,11 @@ if (organization?.industry === 6) {
       link: "/sUsers/RestaurantDashboard",
     },
     {
+      icon: restaurantImg,
+      subtitle: "Bar Management",
+      link: "/sUsers/BarDashboard",
+    },
+    {
       icon: vouchers,
       subtitle: "Vouchers",
       link: "/sUsers/selectVouchers",
