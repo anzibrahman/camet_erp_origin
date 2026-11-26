@@ -20,6 +20,9 @@ import CheckoutDateModal from "./CheckoutDateModal";
 import useFetch from "@/customHook/useFetch";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import api from "../../../api/api";
+import { toast } from "sonner";
+
 
 export default function EnhancedCheckoutModal({
   isOpen = true,
@@ -220,6 +223,92 @@ export default function EnhancedCheckoutModal({
   }, [selectedCheckIns]);
 
   console.log(roomAssignments);
+const checkPendingKots = async () => {
+  try {
+    const checkInNumbers = checkouts
+      .map((checkout) => checkout?.voucherNumber)
+      .filter(Boolean);
+
+    if (!checkInNumbers.length) return true;
+
+    const response = await api.get(
+      `/api/sUsers/getRestaurantBillsDetails/${cmp_id}`,
+      {
+        params: { checkInNumbers },
+        withCredentials: true,
+      },
+    );
+
+    const allKots = response.data?.data || [];
+
+    const pendingKots = allKots.filter((kot) => {
+      // Ignore cancelled or already settled KOTs.
+      if (kot?.status === "cancelled" || kot?.paymentCompleted === true) {
+        return false;
+      }
+
+      const currentCheckout = checkouts.find(
+        (checkout) =>
+          String(checkout?.voucherNumber) === String(kot?.checkInNumber),
+      );
+
+      if (!currentCheckout) return false;
+
+      const originalCheckIn = originalCheckouts.find(
+        (checkout) => String(checkout?._id) === String(currentCheckout?._id),
+      );
+
+      const originalRooms = originalCheckIn?.selectedRooms || [];
+      const roomsBeingCheckedOut = currentCheckout?.selectedRooms || [];
+
+      // Full checkout: check every pending KOT under the check-in.
+      const isPartialCheckout =
+        roomsBeingCheckedOut.length < originalRooms.length;
+
+      if (!isPartialCheckout) {
+        return true;
+      }
+
+      // Partial checkout: compare KOT roomId with the selected room's roomId.
+      const kotRoomId = getId(kot?.roomId);
+
+      const selectedRoomMasterIds = roomsBeingCheckedOut.map((room) =>
+        getId(room?.roomId || room?.selectedRoom || room),
+      );
+
+      // KOT without a room reference is blocked too, as its room cannot
+      // be safely determined during a partial checkout.
+      return (
+        !kotRoomId ||
+        selectedRoomMasterIds.includes(kotRoomId)
+      );
+    });
+
+    if (pendingKots.length > 0) {
+      const kotDetails = pendingKots
+        .map((kot) => {
+          const room = kot?.roomId?.roomName || kot?.roomId?.roomNo;
+          return room
+            ? `${kot.voucherNumber} (Room ${room})`
+            : kot.voucherNumber;
+        })
+        .filter(Boolean)
+        .join(", ");
+
+      toast.error(
+        `Pending KOT found: ${kotDetails}. Convert it to Sale or Post to Room before checkout.`,
+      );
+
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error("Unable to check pending KOTs:", error);
+    toast.error("Unable to verify pending KOTs. Please try again.");
+    return false;
+  }
+};
 
   // Handle customer selection for a specific room
   const handleCustomerSelect = (index, customer) => {
@@ -334,9 +423,11 @@ export default function EnhancedCheckoutModal({
   };
 
   // Handle proceed to checkout
-  const handleProceed = () => {
+  const handleProceed = async () => {
+
+    const canProceed = await checkPendingKots();
+    if (!canProceed) return;
     if (!validateAssignments()) {
-      console.log("hhhh");
       return;
     }
     console.log("hhh");

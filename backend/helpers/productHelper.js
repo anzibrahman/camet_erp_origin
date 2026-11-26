@@ -147,7 +147,7 @@ export const extractRequestParams = (req) => {
   /// in configuration sales is saved as sale,by mistake,so we need to convert it
   /// to sale if it is sales
   const voucherType =
-    req.query.voucherType === "sales" ? "sale" : req.query.voucherType || "all";
+    ["sales", "performaInvoice"].includes(req.query.voucherType) ? "sale" : req.query.voucherType || "all";
 
   /// in configuration sales is saved as sale,by mistake,so we need to convert it
   /// to sale if it is sales

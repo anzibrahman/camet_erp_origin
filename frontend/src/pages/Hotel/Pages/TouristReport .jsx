@@ -45,6 +45,7 @@ const TouristReport = () => {
   }, [autoFetch, cmp_id]);
 
   const [rows, setRows] = useState([]);
+  const [stateRows, setStateRows] = useState([]);
   const [summary, setSummary] = useState({
     totalPax: 0,
     totalNations: 0,
@@ -76,6 +77,7 @@ const TouristReport = () => {
       });
 
       const result = response?.data;
+      setStateRows(Array.isArray(result?.stateData) ? result.stateData : []);
 
       if (result?.data && Array.isArray(result.data)) {
         setRows(result.data);
@@ -105,6 +107,7 @@ const TouristReport = () => {
         });
       }
     } catch (err) {
+      setStateRows([]);
       setError(err?.response?.data?.message || "Failed to fetch report");
       setRows([]);
       setSummary({
@@ -158,7 +161,7 @@ const TouristReport = () => {
   };
 
   const handleExportExcel = () => {
-    if (!rows.length) return;
+    if (!rows.length && !stateRows.length) return;
 
     const excelRows = rows.map((item, index) => ({
       "Sl No": index + 1,
@@ -189,6 +192,17 @@ const TouristReport = () => {
 
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Tourist Report");
+
+    const stateExcelRows = stateRows.map((item, index) => ({
+      "Sl No": index + 1,
+      State: item.state || "UNKNOWN",
+      Pax: Number(item.pax || 0),
+    }));
+    stateExcelRows.push({ State: "TOTAL", Pax: stateRows.reduce((sum, item) => sum + Number(item.pax || 0), 0) });
+    const stateWorksheet = XLSX.utils.json_to_sheet(stateExcelRows, { origin: "A5" });
+    XLSX.utils.sheet_add_aoa(stateWorksheet, [["State Wise Tourist Report"], ["Generated On " + printMeta.date + " " + printMeta.time]], { origin: "A1" });
+    stateWorksheet["!cols"] = [{ wch: 10 }, { wch: 35 }, { wch: 15 }];
+    XLSX.utils.book_append_sheet(workbook, stateWorksheet, "State Wise Report");
 
     const excelBuffer = XLSX.write(workbook, {
       bookType: "xlsx",
@@ -270,7 +284,7 @@ const TouristReport = () => {
                 <button
                   type="button"
                   onClick={handleExportExcel}
-                  disabled={!rows.length}
+                  disabled={!rows.length && !stateRows.length}
                   className="inline-flex h-8 items-center justify-center rounded-md bg-emerald-600 px-3 text-xs font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   Export Excel
@@ -293,7 +307,7 @@ const TouristReport = () => {
                   Tourist Report
                 </h2>
                 <p className="text-[11px] text-slate-500">
-                  Nation wise pax report
+                  Country wise and state wise pax report
                 </p>
               </div>
 
@@ -307,7 +321,9 @@ const TouristReport = () => {
               </div>
             </div>
 
-            {/* Table */}
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 print:grid-cols-2">
+              <section>
+            <h3 className="mb-2 font-semibold text-slate-800">Country Wise</h3>
             <div className="w-full overflow-hidden">
               <table className="w-full table-fixed border-collapse text-xs md:text-sm">
                 <thead>
@@ -370,6 +386,74 @@ const TouristReport = () => {
                   </tfoot>
                 )}
               </table>
+            </div>
+              </section>
+              <section>
+            <h3 className="mb-2 font-semibold text-slate-800">State Wise</h3>
+            <div className="w-full overflow-hidden">
+              <table className="w-full table-fixed border-collapse text-xs md:text-sm">
+                <thead>
+                  <tr className="border-y-2 border-[#7b1e1e]">
+                    <th className="px-2 py-2 text-left font-semibold tracking-wide text-slate-800">
+                      STATE
+                    </th>
+                    <th className="w-20 px-2 py-2 text-right font-semibold tracking-wide text-slate-800 md:w-24">
+                      PAX
+                    </th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {loading ? (
+                    <tr>
+                      <td
+                        colSpan="2"
+                        className="px-2 py-6 text-center text-xs text-slate-500"
+                      >
+                        Loading report...
+                      </td>
+                    </tr>
+                  ) : stateRows.length > 0 ? (
+                    stateRows.map((item, index) => (
+                      <tr
+                        key={index}
+                        className="border-b border-dashed border-slate-300"
+                      >
+                        <td className="px-2 py-2 text-slate-800 break-words whitespace-normal">
+                          {item.state || "UNKNOWN"}
+                        </td>
+                        <td className="px-2 py-2 text-right font-medium text-slate-900 whitespace-nowrap">
+                          {item.pax || 0}
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan="2"
+                        className="px-2 py-6 text-center text-xs text-slate-500"
+                      >
+                        No data found
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+
+                {!loading && stateRows.length > 0 && (
+                  <tfoot>
+                    <tr className="border-t-2 border-slate-900">
+                      <td className="px-2 py-2.5 text-xs font-bold text-slate-900 md:text-sm">
+                        TOTAL
+                      </td>
+                      <td className="px-2 py-2.5 text-right text-xs font-bold text-slate-900 whitespace-nowrap md:text-sm">
+                        {stateRows.reduce((sum, item) => sum + Number(item.pax || 0), 0)}
+                      </td>
+                    </tr>
+                  </tfoot>
+                )}
+              </table>
+            </div>
+              </section>
             </div>
           </div>
         </div>

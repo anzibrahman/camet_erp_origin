@@ -1331,6 +1331,67 @@ export const updateKotPayment = async (req, res) => {
         throw new Error("Missing payment details or KOT data");
       }
 
+      // Re-check on the server because the guest could check out after the
+      // operator has opened the payment preview.
+      if (isPostToRoom) {
+        const checkInNumbers = [
+          ...new Set(
+            (kotData?.voucherNumber || [])
+              .map((kot) => kot?.checkInNumber)
+              .filter(Boolean),
+          ),
+        ];
+
+        const activeCheckIns = await CheckIn.find({
+          cmp_id,
+          voucherNumber: { $in: checkInNumbers },
+          status: { $nin: ["checkOut", "cancelled"] },
+        })
+          .select("voucherNumber selectedRooms")
+          .session(session);
+
+        if (
+          checkInNumbers.length === 0 ||
+          activeCheckIns.length !== checkInNumbers.length
+        ) {
+          throw new Error(
+            "The room has already been checked out. Post to Room is unavailable.",
+          );
+        }
+
+        const activeCheckInsByVoucher = new Map(
+          activeCheckIns.map((checkIn) => [
+            String(checkIn.voucherNumber),
+            checkIn,
+          ]),
+        );
+        const kotIds = (kotData?.voucherNumber || [])
+          .map((kot) => kot?.id)
+          .filter((id) => mongoose.Types.ObjectId.isValid(id));
+        const kots = await kotModal
+          .find({ cmp_id, _id: { $in: kotIds } })
+          .select("roomId checkInNumber")
+          .session(session);
+
+        const includesCheckedOutRoom = kots.some((kot) => {
+          const checkIn = activeCheckInsByVoucher.get(
+            String(kot.checkInNumber),
+          );
+          const room = checkIn?.selectedRooms?.find(
+            (selectedRoom) =>
+              String(selectedRoom?.roomId) === String(kot.roomId),
+          );
+
+          return !room || room.isCheckedOut;
+        });
+
+        if (kots.length !== kotIds.length || includesCheckedOutRoom) {
+          throw new Error(
+            "The room has already been checked out. Post to Room is unavailable.",
+          );
+        }
+      }
+
       if (paymentDetails?.paymentMode === "credit") {
         if (
           !paymentDetails.selectedCreditor ||

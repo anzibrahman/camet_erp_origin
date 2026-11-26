@@ -1,3 +1,4 @@
+import { prepareVoucherParty } from "../helpers/voucherPartyHelper.js";
 import mongoose from "mongoose";
 import { formatToLocalDate } from "../helpers/helper.js";
 import {
@@ -28,6 +29,7 @@ import { createAdvancePaymentsFromAppliedPayments } from "../helpers/receiptHelp
 // @desc create purchase
 // route GET/api/sUsers/createPurchase
 export const createPurchase = async (req, res) => {
+  if (!await prepareVoucherParty(req, res)) return;
   const session = await mongoose.startSession();
   session.startTransaction();
   const purchase_id = new mongoose.Types.ObjectId();
@@ -142,6 +144,7 @@ export const createPurchase = async (req, res) => {
 // route GET/api/sUsers/editPurchase
 
 export const editPurchase = async (req, res) => {
+  if (!await prepareVoucherParty(req, res)) return;
   const session = await mongoose.startSession();
   session.startTransaction();
   try {

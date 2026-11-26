@@ -63,49 +63,21 @@ function HeaderTile({
       <div className="flex justify-between p-4 bg-white drop-shadow-lg items-center text-xs md:text-base">
         <div className="flex flex-col gap-1 justify-center">
           <p
-            className=" flex flex-col   text-sm font-semibold text-violet-400 cursor-pointer hover:text-violet-600 transition-colors"
+            className="flex flex-col text-sm font-semibold text-violet-400 cursor-pointer hover:text-violet-600 transition-colors"
             onClick={() => setIsSeriesModalOpen(true)}
           >
-            {Object?.keys(selectedVoucherSeriesFromRedux)?.length > 0 && (
-              <span className="text-[10.5px] text-gray-500 ">
-                {selectedVoucherSeriesFromRedux?.seriesName || ""}
-              </span>
-            )}
-            {titleText} No:#{number}
+            <span className="text-[10.5px] text-gray-500">
+              {selectedVoucherSeriesFromRedux?.seriesName || "Voucher series"}
+            </span>
+            {titleText} No:#{number || "—"}
           </p>
-
           <div className="flex items-center gap-2">
-            <p className="font-semibold text-gray-500 text-xs md:text-base">
-              {new Date(selectedDate).toDateString()}
-            </p>
-
-            {/* React DatePicker */}
+            <p className="font-semibold text-gray-500 text-xs md:text-base">{new Date(selectedDate).toDateString()}</p>
             <DatePicker
-              selected={new Date(selectedDate)}
-              onChange={handleDateChange}
-              customInput={<CustomInput />}
-              dateFormat="yyyy-MM-dd"
-              className="cursor-pointer mt-10"
-              popperClassName="!z-[9999]"
-              showPopperArrow={false}
-              portalId="date-picker-portal"
-              withPortal
-              popperModifiers={[
-                {
-                  name: "offset",
-                  options: {
-                    offset: [0, 8],
-                  },
-                },
-                {
-                  name: "preventOverflow",
-                  options: {
-                    rootBoundary: "viewport",
-                    tether: false,
-                    altAxis: true,
-                  },
-                },
-              ]}
+              selected={new Date(selectedDate)} onChange={handleDateChange} customInput={<CustomInput />}
+              dateFormat="yyyy-MM-dd" className="cursor-pointer mt-10" popperClassName="!z-[9999]"
+              showPopperArrow={false} portalId="date-picker-portal" withPortal
+              popperModifiers={[{ name: "offset", options: { offset: [0, 8] } }, { name: "preventOverflow", options: { rootBoundary: "viewport", tether: false, altAxis: true } }]}
             />
           </div>
         </div>

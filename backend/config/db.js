@@ -1,14 +1,13 @@
 import mongoose from "mongoose";
 import dns from "node:dns";
+import { installMongoTransferMetrics } from "../utils/mongoTransferMetrics.js";
 const connectDB = async () => {
-
-  console.log(process.env.MONGO_URI);
-  
   try {
-    console.log("hai")
-    console.log(process.env.MONGO_URI);
     dns.setServers(["1.1.1.1", "8.8.8.8"]);
-    const conn = await mongoose.connect(process.env.MONGO_URI);
+    const conn = await mongoose.connect(process.env.MONGO_URI, {
+      monitorCommands: process.env.MONGO_TRANSFER_METRICS_ENABLED === "true",
+    });
+    installMongoTransferMetrics(conn.connection.getClient());
     console.log(`MongoDB Connected ${conn.connection.host}`);
     
   } catch (error) {

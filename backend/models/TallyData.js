@@ -43,6 +43,8 @@ const tallySchema = new mongoose.Schema(
       credit: { type: String, default: "0" },
       card: { type: String, default: "0" },
     },
+    // Cached total of active Adjustment allocations; updated in the same transaction.
+    adjustmentAmount: { type: Number, default: 0, min: 0 },
     appliedReceipts: [
       {
         _id: { type: mongoose.Schema.Types.ObjectId, ref: "Receipt" },

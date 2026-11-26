@@ -64,7 +64,7 @@ function VoucherDetails() {
     }
 
     if (!voucherTypeGlobal) return "";
-    if (voucherTypeGlobal === "sales" || voucherTypeGlobal === "vanSale") {
+    if (voucherTypeGlobal === "sales" || voucherTypeGlobal === "vanSale" || voucherTypeGlobal === "performaInvoice") {
       return "salesNumber";
     }
     if (voucherTypeGlobal === "saleOrder") {
@@ -114,6 +114,7 @@ function VoucherDetails() {
             <VoucherDetailsParty data={data} />
           )}
 
+          {data?.voucherType === "performaInvoice" && <p className="p-3 text-sm bg-amber-50">Proforma invoice: no stock movement, payment receipt, or settlement.</p>}
           <VoucherDetailsProduct
             data={data}
             items={data?.items}

@@ -337,6 +337,25 @@ const SalePrintConfiguration = () => {
     }
   };
 
+  const savePrintFormat = async (printFormat) => {
+    try {
+      setLoading(true);
+      const res = await api.put(`/api/sUsers/updateConfiguration/${cmp_id}`, {
+        input: "printFormat",
+        value: printFormat,
+        type: "printConfiguration",
+        voucher: "sale",
+      }, { headers: { "Content-Type": "application/json" }, withCredentials: true });
+      dispatch(updateConfiguration(res.data.data));
+      localStorage.setItem("secOrg", JSON.stringify(res.data.data));
+      toast.success(`Default sales print set to ${printFormat === "thermal" ? "Thermal" : "A4"}.`);
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Unable to update print format.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="bg-white">
       <TitleDiv
@@ -362,6 +381,22 @@ const SalePrintConfiguration = () => {
       />
 
       <div className="space-y-4 b-white p-4 mx-1">
+        <div className="flex items-center justify-between gap-4 rounded-sm p-4 shadow-md">
+          <div>
+            <h3 className="text-xs font-bold">Default Sales Print Format</h3>
+            <p className="mt-0.5 text-xs text-gray-500">Every sales transaction uses this format when you press Print.</p>
+          </div>
+          <select
+            aria-label="Default sales print format"
+            value={saleConfigurations?.printFormat || "a4"}
+            disabled={loading}
+            onChange={event => savePrintFormat(event.target.value)}
+            className="h-9 min-w-28 rounded border border-slate-300 bg-white px-2 text-xs font-semibold"
+          >
+            <option value="a4">A4 Print</option>
+            <option value="thermal">Thermal Print</option>
+          </select>
+        </div>
         {settings.map((option, index) => (
           <SettingsCard
             option={option}

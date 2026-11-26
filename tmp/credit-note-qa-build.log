@@ -1,0 +1,38 @@
+
+> frontend@0.0.0 build
+> vite build
+
+▲ [WARNING] Unrecognized target environment "ES2024" [tsconfig.json]
+
+    ../jsconfig.json:5:18:
+      5 │         "target": "ES2024",
+        ╵                   ~~~~~~~~
+
+vite v5.0.11 building for production...
+transforming...
+Browserslist: caniuse-lite is outdated. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+✓ 305 modules transformed.
+[vite-plugin-pwa:build] [vite]: Rollup failed to resolve import "qz-tray" from "C:/Users/hp/Desktop/camet_erp_origin/frontend/src/pages/Restuarant/Pages/RestaurantDashboard.jsx".
+This is most likely unintended because it can break your application at runtime.
+If you do want to externalize this module explicitly add it to
+`build.rollupOptions.external`
+error during build:
+Error: [vite]: Rollup failed to resolve import "qz-tray" from "C:/Users/hp/Desktop/camet_erp_origin/frontend/src/pages/Restuarant/Pages/RestaurantDashboard.jsx".
+This is most likely unintended because it can break your application at runtime.
+If you do want to externalize this module explicitly add it to
+`build.rollupOptions.external`
+    at viteWarn (file:///C:/Users/hp/Desktop/camet_erp_origin/frontend/node_modules/vite/dist/node/chunks/dep-V3BH7oO1.js:67316:27)
+    at onwarn (file:///C:/Users/hp/Desktop/camet_erp_origin/frontend/node_modules/@vitejs/plugin-react/dist/index.mjs:250:9)
+    at onRollupWarning (file:///C:/Users/hp/Desktop/camet_erp_origin/frontend/node_modules/vite/dist/node/chunks/dep-V3BH7oO1.js:67341:9)
+    at onwarn (file:///C:/Users/hp/Desktop/camet_erp_origin/frontend/node_modules/vite/dist/node/chunks/dep-V3BH7oO1.js:67061:13)
+    at file:///C:/Users/hp/Desktop/camet_erp_origin/frontend/node_modules/rollup/dist/es/shared/node-entry.js:17398:13
+    at Object.logger [as onLog] (file:///C:/Users/hp/Desktop/camet_erp_origin/frontend/node_modules/rollup/dist/es/shared/node-entry.js:19056:9)
+    at ModuleLoader.handleInvalidResolvedId (file:///C:/Users/hp/Desktop/camet_erp_origin/frontend/node_modules/rollup/dist/es/shared/node-entry.js:18002:26)
+    at file:///C:/Users/hp/Desktop/camet_erp_origin/frontend/node_modules/rollup/dist/es/shared/node-entry.js:17960:26
+npm notice
+npm notice New major version of npm available! 10.9.0 -> 12.2.1
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.1
+npm notice To update run: npm install -g npm@12.2.1
+npm notice

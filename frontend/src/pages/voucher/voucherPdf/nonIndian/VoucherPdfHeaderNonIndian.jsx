@@ -14,7 +14,7 @@ function VoucherPdfHeaderNonIndian({
   /// to get voucher number name
   const getVoucherNumber = () => {
     if (!voucherType) return "";
-    if (voucherType === "sales" || voucherType === "vanSale") {
+    if (voucherType === "sales" || voucherType === "vanSale" || voucherType === "performaInvoice") {
       return "salesNumber";
     } else if (voucherType === "saleOrder") {
       return "orderNumber";

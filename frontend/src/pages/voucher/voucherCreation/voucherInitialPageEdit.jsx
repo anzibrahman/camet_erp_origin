@@ -44,7 +44,21 @@ import AddNoteTile from "./AddNoteTile";
 import { useQueryClient } from "@tanstack/react-query";
 import ReceiveAmount from "./ReceiveAmount";
 
+import DesktopPartySearch from "./DesktopPartySearch";
+import DesktopPriceLevel from "./DesktopPriceLevel";
+import { DesktopSalesItems, DesktopSalesTotals, DesktopRecentSales } from "./DesktopSalesPanels";
+import DesktopSalesOptions from "./DesktopSalesOptions";
+import "./desktopSales.css";
+
 function VoucherInitialPageEdit() {
+  const [optionsTab, setOptionsTab] = useState(null);
+  const [desktopViewport, setDesktopViewport] = useState(() => window.matchMedia("(min-width: 1024px)").matches);
+  useEffect(() => {
+    const media = window.matchMedia("(min-width: 1024px)");
+    const update = () => setDesktopViewport(media.matches);
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
+  }, []);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
@@ -537,6 +551,64 @@ function VoucherInitialPageEdit() {
       setSubmitLoading(false);
     }
   };
+
+  const handleDesktopReceivedAmount = ({ cash, upi, cheque, cashSource, upiSource, chequeSource }) => {
+    const received = Math.min(Math.max((Number(cash) || 0) + (Number(upi) || 0) + (Number(cheque) || 0), 0), Number(totalAmount) || 0);
+    const balance = Math.max((Number(totalAmount) || 0) - received, 0);
+    dispatch(addPaymentSplits({
+      changeFinalAmount: true,
+      totalPaymentSplits: received + balance,
+      paymentSplits: [
+        { type: "cash", amount: Number(cash) || 0, ref_id: cashSource || null, ref_collection: "Cash" },
+        { type: "upi", amount: Number(upi) || 0, ref_id: upiSource || null, ref_collection: "BankDetails" },
+        { type: "cheque", amount: Number(cheque) || 0, ref_id: chequeSource || null, ref_collection: "BankDetails" },
+        { type: "credit", amount: balance, ref_id: party?._id || null, ref_collection: "Party", reference_name: party?.partyName || party?.name || "", credit_reference_type: party?.partyType || "" },
+      ],
+    }));
+  };
+
+  const desktopEdit = desktopViewport && ["sales", "purchase", "creditNote", "debitNote", "saleOrder", "performaInvoice"].includes(voucherTypeFromRedux);
+
+  if (desktopEdit) {
+    return (
+      <div className={`desktop-sales ${["purchase", "debitNote"].includes(voucherTypeFromRedux) ? "desktop-purchase" : ""}`}>
+        <div className="flex-1 bg-slate-100">
+          <TitleDiv title={`Edit ${formatVoucherType(voucherTypeFromRedux)}`} loading={isLoading || submitLoading}
+            rightSideContent="Home" rightSideContentOnClick={() => navigate("/sUsers/dashboard")} />
+          <div className={`sales-workspace ${isLoading || submitLoading ? "pointer-events-none opacity-70" : ""}`}>
+            <div className="sales-form">
+              <div className="sales-header">
+                <HeaderTile title={formatVoucherType(voucherTypeFromRedux)} number={voucherNumberFromRedux}
+                  selectedDate={selectedDate} setSelectedDate={setSelectedDate} dispatch={dispatch} changeDate={changeDate}
+                  submitHandler={submitHandler} removeAll={removeAll} isLoading={submitLoading} mode={mode}
+                  selectedVoucherSeriesFromRedux={selectedVoucherSeriesFromRedux || {}}
+                  enablePaymentSplittingAsCompulsory={enablePaymentSplittingAsCompulsory} />
+              </div>
+              <div className="sales-party">
+                <DesktopPartySearch cmpId={cmp_id} party={party} locked={convertedFrom.length > 0} voucherType={voucherTypeFromRedux} />
+                {["sales", "creditNote", "saleOrder", "performaInvoice"].includes(voucherTypeFromRedux) && (
+                  <div className="sales-party-values"><DesktopPriceLevel cmpId={cmp_id} locked={convertedFrom.length > 0} /></div>
+                )}
+              </div>
+              <DesktopSalesItems items={items} convertedFrom={convertedFrom} voucherType={voucherTypeFromRedux} />
+              <DesktopSalesOptions tab={optionsTab} onTabChange={setOptionsTab}
+                openAdditionalTile={openAdditionalTile} setOpenAdditionalTile={setOpenAdditionalTile} />
+              <DesktopSalesTotals allowReceivePayment={!["performaInvoice", "creditNote"].includes(voucherTypeFromRedux)} onEditCharges={() => setOptionsTab("charges")} onOpenOptions={() => setOptionsTab("charges")} onApplyReceived={handleDesktopReceivedAmount} subtotal={subTotal} charges={totalAdditionalChargesFromRedux} total={totalAmount} received={{ cash: Number((paymentSplittingDataFromRedux || []).find(payment => payment.type === "cash")?.amount || 0), cashSource: (paymentSplittingDataFromRedux || []).find(payment => payment.type === "cash")?.ref_id || "", upi: Number((paymentSplittingDataFromRedux || []).find(payment => payment.type === "upi")?.amount || 0), upiSource: (paymentSplittingDataFromRedux || []).find(payment => payment.type === "upi")?.ref_id || "", cheque: Number((paymentSplittingDataFromRedux || []).find(payment => payment.type === "cheque")?.amount || 0), chequeSource: (paymentSplittingDataFromRedux || []).find(payment => payment.type === "cheque")?.ref_id || "" }} balance={Math.max(Number(totalAmount || 0) - (paymentSplittingDataFromRedux || []).filter(payment => payment.type !== "credit").reduce((sum, payment) => sum + Number(payment.amount || 0), 0), 0)} />
+              <div className="sales-footer">
+                <button type="button" className="sales-cancel" disabled={submitLoading}
+                  onClick={() => navigate(`/sUsers/${voucherTypeFromRedux}Details/${voucherId}`)}>Back</button>
+                <FooterButton submitHandler={submitHandler} title={formatVoucherType(voucherTypeFromRedux)}
+                  isLoading={submitLoading || isLoading} loading={submitLoading || isLoading} mode={mode}
+                  desktopLabel="Update Transaction" />
+              </div>
+            </div>
+            <DesktopRecentSales cmpId={cmp_id} isAdmin={isAdmin} voucherType={voucherTypeFromRedux}
+              onEdit={transaction => navigate(`/sUsers/${voucherTypeFromRedux}Details/${transaction._id}`)} />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="mb-14 sm:mb-0">

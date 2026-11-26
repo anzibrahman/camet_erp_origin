@@ -1,3 +1,4 @@
+import { prepareVoucherParty } from "../helpers/voucherPartyHelper.js";
 import {
   checkForNumberExistence,
   getNewSerialNumber,
@@ -30,6 +31,7 @@ import settlementModel from "../models/settlementModel.js";
  */
 
 export const createPayment = async (req, res) => {
+  if (!await prepareVoucherParty(req, res)) return;
   const {
     date,
     paymentNumber,
@@ -264,6 +266,7 @@ export const cancelPayment = async (req, res) => {
 };
 
 export const editPayment = async (req, res) => {
+  if (!await prepareVoucherParty(req, res)) return;
   const paymentId = req.params.paymentId;
   const Primary_user_id = req.owner.toString();
   const Secondary_user_id = req.sUserId;

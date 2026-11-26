@@ -385,7 +385,7 @@ export const getReceiptPaymentMultiplier = (source) => {
   }
 };
 
-export const calculateBillPending = (voucherType, billAmount, receipts, payments) => {
+export const calculateBillPending = (voucherType, billAmount, receipts, payments, adjustments = 0) => {
   // Ensure all values are numbers (default 0 if invalid)
   const amount = Number(billAmount) || 0;
   const rec = Number(receipts) || 0;
@@ -397,10 +397,10 @@ export const calculateBillPending = (voucherType, billAmount, receipts, payments
 
   if (voucherType === "sales" || voucherType === "debitNote" || voucherType === "advancePayment") {
     // Dr vouchers: receipts reduce pending, payments increase pending
-    return amount - rec + pay;
+    return amount - rec + pay - (Number(adjustments) || 0);
   } else if (voucherType === "purchase" || voucherType === "creditNote" || voucherType === "advanceReceipt") {
     // Cr vouchers: payments reduce pending, receipts increase pending
-    return -(amount - pay + rec);
+    return -(amount - pay + rec - (Number(adjustments) || 0));
   }
 
   return 0; // default case

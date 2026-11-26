@@ -1,3 +1,5 @@
+import { voucherEditError } from "../helpers/voucherLifecycleHelper.js";
+import { prepareVoucherParty } from "../helpers/voucherPartyHelper.js";
 import { checkForNumberExistence } from "../helpers/secondaryHelper.js";
 import {
   calculateAdditionalCharges,
@@ -23,6 +25,7 @@ import {
  */
 
 export const createInvoice = async (req, res) => {
+  if (!await prepareVoucherParty(req, res)) return;
   const Secondary_user_id = req.sUserId;
   const owner = req.owner.toString();
   const maxRetries = 5;
@@ -138,6 +141,7 @@ console.log("line saleorder")
  * @access Public
  */
 export const editInvoice = async (req, res) => {
+  if (!await prepareVoucherParty(req, res)) return;
   const session = await mongoose.startSession();
   let retries = 3; // Retry up to 3 times
 
@@ -175,6 +179,13 @@ export const editInvoice = async (req, res) => {
           .json({ success: false, message: "Invoice not found" });
       }
 
+      const editError = await voucherEditError(existingInvoice, session, true);
+      if (editError) {
+        await session.abortTransaction();
+        session.endSession();
+        return res.status(409).json({ success: false, message: editError });
+      }
+
       if (existingInvoice?.series_id?.toString() !== series_id?.toString()) {
         const { voucherNumber, usedSeriesNumber: newUsedSeriesNumber } =
           await generateVoucherNumber(
@@ -186,6 +197,11 @@ export const editInvoice = async (req, res) => {
 
         orderNumber = voucherNumber; // Always update when series changes
         usedSeriesNumber = newUsedSeriesNumber; // Always update when series changes
+      }
+
+      else {
+        orderNumber = existingInvoice.orderNumber;
+        usedSeriesNumber = existingInvoice.usedSeriesNumber;
       }
 
       // Revert stock changes based on the original invoice
@@ -225,6 +241,8 @@ console.log("204 saleorder")
             Primary_user_id,
             Secondary_user_id,
             orderNumber,
+            series_id,
+            usedSeriesNumber,
             despatchDetails,
             date: formattedDate,
             createdAt: existingInvoice.createdAt,
@@ -307,6 +325,12 @@ export const cancelSalesOrder = async (req, res) => {
         success: false,
         message: "Invoice is already cancelled",
       });
+    }
+
+    if (invoice.isConverted) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(409).json({ success: false, message: "Converted sale orders cannot be cancelled" });
     }
 
     // Revert stock changes based on the original invoice

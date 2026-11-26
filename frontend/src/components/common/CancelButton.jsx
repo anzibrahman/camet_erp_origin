@@ -1,3 +1,4 @@
+import { voucherCancelEndpoint } from "../../../utils/voucherEndpoints";
 /* eslint-disable react/no-unescaped-entities */
 
 /* eslint-disable react/prop-types */
@@ -81,7 +82,7 @@ const [cancelReason, setCancelReason] = useState("");
     try {
       setActionLoading(true);
       await api.put(
-        `/api/sUsers/cancel${voucherType}/${id}?vanSale=${vanSale}`,
+        `/api/sUsers/${voucherCancelEndpoint(voucherType)}/${id}?vanSale=${vanSale}`,
         {cancelReason},
         {
           withCredentials: true,

@@ -66,11 +66,19 @@ export const getSeriesByVoucher = async (req, res) => {
       (item) => item?.organization?.toString() == cmp_id?.toString()
     );
 
-    const seriesDoc = await VoucherSeries.findOne({
+    let seriesDoc = await VoucherSeries.findOne({
       voucherType: voucherType === "sale" ? "sales" : voucherType,
       cmp_id,
     }).lean();
 
+    // Existing companies receive their independent proforma sequence on first use.
+    if (!seriesDoc && voucherType === "performaInvoice" && configuration) {
+      seriesDoc = await VoucherSeries.findOneAndUpdate(
+        { cmp_id, voucherType },
+        { $setOnInsert: { cmp_id, voucherType, Primary_user_id: req.owner, series: [{ seriesName: "Default Series", prefix: "PI-", currentNumber: 1, lastUsedNumber: 1, widthOfNumericalPart: 4, isDefault: true }] } },
+        { upsert: true, new: true, setDefaultsOnInsert: true }
+      ).lean();
+    }
     if (!seriesDoc) {
       return res
         .status(404)
@@ -133,6 +141,7 @@ export const createVoucherSeries = async (req, res) => {
   const voucherTypes = [
     "sales",
     "saleOrder",
+    "performaInvoice",
     "vanSale",
     "purchase",
     "creditNote",

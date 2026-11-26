@@ -15,6 +15,7 @@ import { toast } from "sonner";
 
 export default function AdditionalChargesTile({
   type,
+  embedded = false,
   setOpenAdditionalTile,
   openAdditionalTile,
 }) {
@@ -122,6 +123,7 @@ export default function AdditionalChargesTile({
 
     setRows(newRows);
     dispatch(addAdditionalCharges({ index, row: newRows[index] }));
+    if (embedded) dispatch(resetPaymentSplit());
   };
 
   const handleRateChange = (index, value) => {
@@ -154,6 +156,7 @@ export default function AdditionalChargesTile({
     newRows[index] = updatedRow;
     setRows(newRows);
     dispatch(addAdditionalCharges({ index, row: updatedRow }));
+    if (embedded) dispatch(resetPaymentSplit());
   };
 
   const handleDeleteRow = (index) => {
@@ -202,7 +205,7 @@ export default function AdditionalChargesTile({
     <>
       {voucherTypeFromRedux !== "stockTransfer" && (
         <div className="w-full bg-white py-3 mt-2">
-          {openAdditionalTile && type !== "stockTransfer" ? (
+          {(embedded || openAdditionalTile) && type !== "stockTransfer" ? (
             <div className="container bg-white p-4 text-xs">
               <div className="flex items-center justify-between font-bold text-[13px]">
                 <div className="flex items-center gap-3">

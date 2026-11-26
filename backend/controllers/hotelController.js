@@ -2320,9 +2320,7 @@ export const getallnoncheckoutCheckins = async (req, res) => {
       cmp_id,
       status: { $nin: ["checkOut", "cancelled"] },
     });
-    if (allnocheckoutcheckins && allnocheckoutcheckins.length) {
-      return res.json({ success: true, data: allnocheckoutcheckins });
-    }
+    return res.json({ success: true, data: allnocheckoutcheckins });
   } catch (error) {
     console.log("error", error.message);
     return res.status(500).json({
@@ -6072,7 +6070,7 @@ export const getTouristReport = async (req, res) => {
       cmp_id: new mongoose.Types.ObjectId(cmp_id),
     };
 
-    const report = await CheckIn.aggregate([
+    const [reportGroups] = await CheckIn.aggregate([
       { $match: match },
 
       {
@@ -6125,24 +6123,23 @@ export const getTouristReport = async (req, res) => {
       },
 
       {
-        $group: {
-          _id: "$groupedCountry",
-          pax: { $sum: "$totalPax" },
-          bookings: { $sum: 1 },
+        $facet: {
+          countries: [
+            { $group: { _id: "$groupedCountry", pax: { $sum: "$totalPax" }, bookings: { $sum: 1 } } },
+            { $project: { _id: 0, nation: "$_id", pax: 1, bookings: 1 } },
+            { $sort: { pax: -1, nation: 1 } },
+          ],
+          states: [
+            { $addFields: { normalizedState: { $toUpper: { $trim: { input: { $ifNull: ["$guestState", ""] } } } } } },
+            { $group: { _id: { $cond: [{ $eq: ["$normalizedState", ""] }, "UNKNOWN", "$normalizedState"] }, pax: { $sum: "$totalPax" }, bookings: { $sum: 1 } } },
+            { $project: { _id: 0, state: "$_id", pax: 1, bookings: 1 } },
+            { $sort: { pax: -1, state: 1 } },
+          ],
         },
       },
-
-      {
-        $project: {
-          _id: 0,
-          nation: "$_id",
-          pax: 1,
-          bookings: 1,
-        },
-      },
-
-      { $sort: { pax: -1, nation: 1 } },
     ]);
+    const report = reportGroups?.countries || [];
+    const stateReport = reportGroups?.states || [];
     const unknownCountryDocs = await CheckIn.aggregate([
       { $match: match },
 
@@ -6204,13 +6201,16 @@ export const getTouristReport = async (req, res) => {
         fromDate,
         toDate,
         countryField: "guestCountry",
+        stateField: "guestState",
       },
       summary: {
         totalNations: report.length,
+        totalStates: stateReport.length,
         totalPax,
         totalBookings,
       },
       data: report,
+      stateData: stateReport,
     });
   } catch (error) {
     console.error("getTouristReport error:", error);

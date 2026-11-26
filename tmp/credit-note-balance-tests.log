@@ -1,0 +1,411 @@
+TAP version 13
+# (node:16884) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+# (Use `node --trace-deprecation ...` to show where the warning was created)
+# Subtest: party sales query is scoped to company, owner and customer, excludes cancelled sales and paginates
+ok 1 - party sales query is scoped to company, owner and customer, excludes cancelled sales and paginates
+  ---
+  duration_ms: 39.4432
+  ...
+# Subtest: unassigned account cannot inspect party sales
+ok 2 - unassigned account cannot inspect party sales
+  ---
+  duration_ms: 1.3242
+  ...
+# Subtest: invalid party identifier is rejected
+ok 3 - invalid party identifier is rejected
+  ---
+  duration_ms: 0.7316
+  ...
+# Subtest: organization-array assignment allows access with empty configurations
+ok 4 - organization-array assignment allows access with empty configurations
+  ---
+  duration_ms: 2.7318
+  ...
+# Subtest: another organization assignment does not allow access
+ok 5 - another organization assignment does not allow access
+  ---
+  duration_ms: 1.9005
+  ...
+# Subtest: assignment cannot bypass company ownership or blocked-company check
+ok 6 - assignment cannot bypass company ownership or blocked-company check
+  ---
+  duration_ms: 1.3864
+  ...
+# (node:23156) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+# (Use `node --trace-deprecation ...` to show where the warning was created)
+# Subtest: mixed save adjusts the selected original sale and preserves the new sale outstanding
+ok 7 - mixed save adjusts the selected original sale and preserves the new sale outstanding
+  ---
+  duration_ms: 75.226
+  ...
+# Subtest: sale-only save never allocates a credit note number or creates an adjustment
+ok 8 - sale-only save never allocates a credit note number or creates an adjustment
+  ---
+  duration_ms: 3.9074
+  ...
+# Subtest: return-only save uses only the credit note series and adjusts the original source sale
+ok 9 - return-only save uses only the credit note series and adjusts the original source sale
+  ---
+  duration_ms: 8.5884
+  ...
+# Subtest: excess return credit remains as negative outstanding after settling the sale
+ok 10 - excess return credit remains as negative outstanding after settling the sale
+  ---
+  duration_ms: 4.5027
+  ...
+# Subtest: cash already received reduces only the new sale balance
+ok 11 - cash already received reduces only the new sale balance
+  ---
+  duration_ms: 9.2988
+  ...
+# Subtest: a fully paid new sale does not change the selected original invoice adjustment
+ok 12 - a fully paid new sale does not change the selected original invoice adjustment
+  ---
+  duration_ms: 4.2799
+  ...
+# Subtest: credit-note failure rolls back sale, stock work and both sequence allocations
+ok 13 - credit-note failure rolls back sale, stock work and both sequence allocations
+  ---
+  duration_ms: 4.7466
+  ...
+# Subtest: adjustment failure rolls back both documents and their outstanding records
+ok 14 - adjustment failure rolls back both documents and their outstanding records
+  ---
+  duration_ms: 13.0167
+  ...
+# Subtest: unchanged retry returns the committed result without creating duplicate vouchers
+ok 15 - unchanged retry returns the committed result without creating duplicate vouchers
+  ---
+  duration_ms: 19.8515
+  ...
+# Subtest: reusing a request ID with changed data is rejected
+ok 16 - reusing a request ID with changed data is rejected
+  ---
+  duration_ms: 7.6466
+  ...
+# Subtest: unauthorized company access cannot allocate numbers or write documents
+ok 17 - unauthorized company access cannot allocate numbers or write documents
+  ---
+  duration_ms: 2.6954
+  ...
+# Subtest: item flags, wrong customers, invalid quantities and already-saved returns are rejected
+ok 18 - item flags, wrong customers, invalid quantities and already-saved returns are rejected
+  ---
+  duration_ms: 2.9383
+  ...
+# Subtest: the backend derives separate totals and stock quantities rather than using header overrides
+ok 19 - the backend derives separate totals and stock quantities rather than using header overrides
+  ---
+  duration_ms: 1.0894
+  ...
+# Subtest: series selection respects company, voucher type and secondary-user restrictions
+ok 20 - series selection respects company, voucher type and secondary-user restrictions
+  ---
+  duration_ms: 9.1854
+  ...
+# Subtest: foreign products and cancelled or unrelated source sales are rejected
+ok 21 - foreign products and cancelled or unrelated source sales are rejected
+  ---
+  duration_ms: 4.4909
+  ...
+# Subtest: the real voucher allocator takes a new number from each independent series
+ok 22 - the real voucher allocator takes a new number from each independent series
+  ---
+  duration_ms: 2.5112
+  ...
+# Subtest: the real posting helpers write Sales and CreditNote models plus Dr and Cr outstanding in the shared session
+ok 23 - the real posting helpers write Sales and CreditNote models plus Dr and Cr outstanding in the shared session
+  ---
+  duration_ms: 319.461
+  ...
+# Subtest: real stock helpers add returned stock and subtract new sale quantities for the same product
+ok 24 - real stock helpers add returned stock and subtract new sale quantities for the same product
+  ---
+  duration_ms: 5.5071
+  ...
+# Subtest: authorization uses the owned unblocked company, assigned user and authoritative customer ledger
+ok 25 - authorization uses the owned unblocked company, assigned user and authoritative customer ledger
+  ---
+  duration_ms: 4.9267
+  ...
+# Subtest: foreign cash/bank payment accounts are rejected before posting
+ok 26 - foreign cash/bank payment accounts are rejected before posting
+  ---
+  duration_ms: 1.573
+  ...
+# Subtest: mixed save leaves older credit notes untouched
+ok 27 - mixed save leaves older credit notes untouched
+  ---
+  duration_ms: 5.0186
+  ...
+# Subtest: selected unpaid original invoice with return 400 preserves the new sale
+ok 28 - selected unpaid original invoice with return 400 preserves the new sale
+  ---
+  duration_ms: 3.1077
+  ...
+# Subtest: selected unpaid original invoice with return 1200 preserves the new sale
+ok 29 - selected unpaid original invoice with return 1200 preserves the new sale
+  ---
+  duration_ms: 2.4299
+  ...
+# Subtest: selected half paid original invoice with return 400 preserves the new sale
+ok 30 - selected half paid original invoice with return 400 preserves the new sale
+  ---
+  duration_ms: 2.2598
+  ...
+# Subtest: selected half paid original invoice with return 1200 preserves the new sale
+ok 31 - selected half paid original invoice with return 1200 preserves the new sale
+  ---
+  duration_ms: 2.0449
+  ...
+# Subtest: selected fully paid original invoice with return 400 preserves the new sale
+ok 32 - selected fully paid original invoice with return 400 preserves the new sale
+  ---
+  duration_ms: 2.0614
+  ...
+# Subtest: selected fully paid original invoice with return 1200 preserves the new sale
+ok 33 - selected fully paid original invoice with return 1200 preserves the new sale
+  ---
+  duration_ms: 1.7122
+  ...
+# Subtest: saved source sales retain the credit note ID in the same transaction
+ok 34 - saved source sales retain the credit note ID in the same transaction
+  ---
+  duration_ms: 2.467
+  ...
+# Subtest: removed source invoices are excluded from one credit note's references and adjustment
+ok 35 - removed source invoices are excluded from one credit note's references and adjustment
+  ---
+  duration_ms: 3.5929
+  ...
+# Subtest: reference write failure rolls back credit note, sale and allocations
+ok 36 - reference write failure rolls back credit note, sale and allocations
+  ---
+  duration_ms: 1.71
+  ...
+# Subtest: mixed transaction receives 0 against only the new sale
+ok 37 - mixed transaction receives 0 against only the new sale
+  ---
+  duration_ms: 13.6678
+  ...
+# Subtest: mixed transaction receives 500 against only the new sale
+ok 38 - mixed transaction receives 500 against only the new sale
+  ---
+  duration_ms: 2.3326
+  ...
+# Subtest: mixed transaction receives 1000 against only the new sale
+ok 39 - mixed transaction receives 1000 against only the new sale
+  ---
+  duration_ms: 1.9371
+  ...
+# Subtest: receipt failure rolls back the sale, credit note and transaction numbers
+ok 40 - receipt failure rolls back the sale, credit note and transaction numbers
+  ---
+  duration_ms: 2.1854
+  ...
+# Subtest: real split-payment receipts settle only the new sale once and retain its unpaid balance
+ok 41 - real split-payment receipts settle only the new sale once and retain its unpaid balance
+  ---
+  duration_ms: 45.2581
+  ...
+# Subtest: sale posting leaves the gross outstanding for receipts and avoids duplicate sale payment settlements
+ok 42 - sale posting leaves the gross outstanding for receipts and avoids duplicate sale payment settlements
+  ---
+  duration_ms: 13.0381
+  ...
+# Subtest: Qty All copies original rates, taxes and stock identities without mutating the sale
+ok 43 - Qty All copies original rates, taxes and stock identities without mutating the sale
+  ---
+  duration_ms: 11.2224
+  ...
+# Subtest: partial return quantities recalculate amounts and preserve actual/billed ratios
+ok 44 - partial return quantities recalculate amounts and preserve actual/billed ratios
+  ---
+  duration_ms: 1.1674
+  ...
+# Subtest: zero quantity rows are excluded from selected credit quantities
+ok 45 - zero quantity rows are excluded from selected credit quantities
+  ---
+  duration_ms: 1.3011
+  ...
+# Subtest: negative and non-finite return quantities are rejected
+ok 46 - negative and non-finite return quantities are rejected
+  ---
+  duration_ms: 1.9965
+  ...
+# Subtest: inclusive-tax sale rate remains inclusive in the credit note
+ok 47 - inclusive-tax sale rate remains inclusive in the credit note
+  ---
+  duration_ms: 1.4423
+  ...
+# Subtest: multiple sales combine matching rows and preserve total and actual quantities
+ok 48 - multiple sales combine matching rows and preserve total and actual quantities
+  ---
+  duration_ms: 3.3591
+  ...
+# Subtest: any differing rate, discount, tax, or inclusive setting remains separate
+ok 49 - any differing rate, discount, tax, or inclusive setting remains separate
+  ---
+  duration_ms: 19.0145
+  ...
+# Subtest: equal amount discounts accumulate without changing the returned value
+ok 50 - equal amount discounts accumulate without changing the returned value
+  ---
+  duration_ms: 1.7671
+  ...
+# Subtest: matching items retain separate godown and batch destinations
+ok 51 - matching items retain separate godown and batch destinations
+  ---
+  duration_ms: 1.7585
+  ...
+# Subtest: returns cannot exceed original quantity and leave source history unchanged
+ok 52 - returns cannot exceed original quantity and leave source history unchanged
+  ---
+  duration_ms: 2.2611
+  ...
+# Subtest: each stock row is capped even when the overall product quantity is within the sale total
+ok 53 - each stock row is capped even when the overall product quantity is within the sale total
+  ---
+  duration_ms: 0.9503
+  ...
+# Subtest: return draft preserves selected quantities and sale history
+ok 54 - return draft preserves selected quantities and sale history
+  ---
+  duration_ms: 70.5357
+  ...
+# Subtest: returns appear beside sale items without mutating the sale payload or totals
+ok 55 - returns appear beside sale items without mutating the sale payload or totals
+  ---
+  duration_ms: 3.3564
+  ...
+# Subtest: saved credit note rows remain visible with the saved credit note number
+ok 56 - saved credit note rows remain visible with the saved credit note number
+  ---
+  duration_ms: 4.3294
+  ...
+# Subtest: saving uses a credit note series and sends only return items to createCreditNote
+ok 57 - saving uses a credit note series and sends only return items to createCreditNote
+  ---
+  duration_ms: 7.1861
+  ...
+# Subtest: save failures preserve pending return products
+ok 58 - save failures preserve pending return products
+  ---
+  duration_ms: 6.4404
+  ...
+# Subtest: missing credit note series blocks saving without posting
+ok 59 - missing credit note series blocks saving without posting
+  ---
+  duration_ms: 11.8904
+  ...
+# Subtest: mismatched customers cannot create or save return drafts
+ok 60 - mismatched customers cannot create or save return drafts
+  ---
+  duration_ms: 2.2007
+  ...
+# Subtest: empty product selection cannot be imported
+ok 61 - empty product selection cannot be imported
+  ---
+  duration_ms: 1.3999
+  ...
+# Subtest: return state stays separate from sales and clears when the customer changes
+ok 62 - return state stays separate from sales and clears when the customer changes
+  ---
+  duration_ms: 295.9617
+  ...
+# Subtest: saved credit notes cannot be submitted again
+ok 63 - saved credit notes cannot be submitted again
+  ---
+  duration_ms: 2.9648
+  ...
+# Subtest: return products are first even when there are many normal sale rows
+ok 64 - return products are first even when there are many normal sale rows
+  ---
+  duration_ms: 1.8887
+  ...
+# Subtest: import keys work when randomUUID is unavailable on an HTTP origin
+ok 65 - import keys work when randomUUID is unavailable on an HTTP origin
+  ---
+  duration_ms: 1.8269
+  ...
+# Subtest: return saving accepts the JSON-encoded date initialized by the Sales page
+ok 66 - return saving accepts the JSON-encoded date initialized by the Sales page
+  ---
+  duration_ms: 1.9349
+  ...
+# Subtest: Save Transaction includes unsaved returns separately and excludes already-saved notes
+ok 67 - Save Transaction includes unsaved returns separately and excludes already-saved notes
+  ---
+  duration_ms: 14.0416
+  ...
+# Subtest: unchanged transaction retry preserves its ID, while edited products get a new ID
+ok 68 - unchanged transaction retry preserves its ID, while edited products get a new ID
+  ---
+  duration_ms: 1.4514
+  ...
+# Subtest: three sales show one merged A while retaining both original invoice quantities
+ok 69 - three sales show one merged A while retaining both original invoice quantities
+  ---
+  duration_ms: 4.923
+  ...
+# Subtest: remove A from S1 excludes S1, leaving S2's A and B and S3's D
+ok 70 - remove A from S1 excludes S1, leaving S2's A and B and S3's D
+  ---
+  duration_ms: 2.888
+  ...
+# Subtest: removing both A quantities excludes S1 but keeps S2 for its B
+ok 71 - removing both A quantities excludes S1 but keeps S2 for its B
+  ---
+  duration_ms: 2.1146
+  ...
+# Subtest: partial source removal scales taxes and actual quantities and rejects increases
+ok 72 - partial source removal scales taxes and actual quantities and rejects increases
+  ---
+  duration_ms: 13.0348
+  ...
+# Subtest: same product at different sale rates has one display row and retains source values
+ok 73 - same product at different sale rates has one display row and retains source values
+  ---
+  duration_ms: 2.982
+  ...
+# Subtest: modal decrement requires choosing which original sale loses one unit
+ok 74 - modal decrement requires choosing which original sale loses one unit
+  ---
+  duration_ms: 4.568
+  ...
+# Subtest: modal removing both merged A units drops S1 and keeps S2's other product
+ok 75 - modal removing both merged A units drops S1 and keeps S2's other product
+  ---
+  duration_ms: 2.9373
+  ...
+# Subtest: modal disallows increasing quantities and can remove the last return product
+ok 76 - modal disallows increasing quantities and can remove the last return product
+  ---
+  duration_ms: 3.5734
+  ...
+# (node:20344) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+# (Use `node --trace-deprecation ...` to show where the warning was created)
+# Subtest: QA: first return of 6 from 10 sold is accepted
+ok 77 - QA: first return of 6 from 10 sold is accepted
+  ---
+  duration_ms: 36.1911
+  ...
+# Subtest: QA: returning the remaining 4 after a saved return of 6 is accepted
+ok 78 - QA: returning the remaining 4 after a saved return of 6 is accepted
+  ---
+  duration_ms: 1.8801
+  ...
+# Subtest: QA: second return of 6 after a saved return of 6 from 10 sold must be rejected
+ok 79 - QA: second return of 6 after a saved return of 6 from 10 sold must be rejected
+  ---
+  duration_ms: 5.7821
+  ...
+1..79
+# tests 79
+# suites 0
+# pass 79
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 10384.6382

@@ -12,6 +12,10 @@ import cors from 'cors'
 import cookieParser from "cookie-parser";
 import path from 'path'
 import bodyParser from 'body-parser';
+import {
+  mongoTransferMetricsMiddleware,
+  startMongoTransferMetricsReporter,
+} from "./utils/mongoTransferMetrics.js";
 
 
 
@@ -33,6 +37,8 @@ app.use(bodyParser.json({ limit: '100mb',parameterLimit:50000 }));
 app.use(bodyParser.urlencoded({ limit: '100mb', extended: true ,parameterLimit:50000}));
 app.use(cors(corsOptions));
 app.use(cookieParser())
+app.use(mongoTransferMetricsMiddleware);
+startMongoTransferMetricsReporter();
 
 app.use("/api/pUsers",primaryUsers)
 app.use("/api/sUsers",secondaryUsers)

@@ -4,7 +4,7 @@ import bcrypt from "bcryptjs";
 const secondaryUserSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
-    email: { type: String },
+    email: { type: String, required: true, trim: true, lowercase: true },
     mobile: { type: Number },
     password: { type: String },
     organization: [
@@ -149,6 +149,8 @@ const secondaryUserSchema = new mongoose.Schema(
     timestamps: true,
   },
 );
+
+secondaryUserSchema.index({ email: 1 }, { unique: true, sparse: true, collation: { locale: "en", strength: 2 } });
 
 secondaryUserSchema.pre("save", async function (next) {
   if (!this.isModified("password")) {

@@ -257,8 +257,13 @@ export const addSecUsers = async (req, res) => {
   try {
     const { name, mobile, email, password } = req.body;
     const pUserId = req.owner;
+    const normalizedEmail = String(email || "").trim().toLowerCase();
 
-    const userExists = await SecondaryUser.findOne({ email });
+    if (!normalizedEmail) {
+      return res.status(400).json({ success: false, message: "Email is required" });
+    }
+
+    const userExists = await SecondaryUser.findOne({ email: normalizedEmail }).collation({ locale: "en", strength: 2 });
 
     if (userExists) {
       return res
@@ -269,7 +274,7 @@ export const addSecUsers = async (req, res) => {
     const user = new SecondaryUser({
       name,
       mobile,
-      email,
+      email: normalizedEmail,
       password,
       primaryUser: pUserId,
     });
@@ -288,6 +293,9 @@ export const addSecUsers = async (req, res) => {
       });
     }
   } catch (error) {
+    if (error?.code === 11000 && error?.keyPattern?.email) {
+      return res.status(409).json({ success: false, message: "This email is already registered." });
+    }
     console.error(error);
     return res
       .status(500)

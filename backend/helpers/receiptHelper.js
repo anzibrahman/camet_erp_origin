@@ -107,7 +107,8 @@ export const updateTallyData = async (
       doc?.source,
       doc?.bill_amount || 0,
       totalAppliedReceipts,
-      existingAppliedPaymentsTotal
+      existingAppliedPaymentsTotal,
+      doc?.adjustmentAmount || 0
     );
     console.log("balance", balance)
 
@@ -199,7 +200,8 @@ export const createOutstandingWithAdvanceAmount = async (
         existingAdvance?.source,
         updatedBillAmount || 0,
         totalAppliedReceipts,
-        totalAppliedPayments
+        totalAppliedPayments,
+        existingAdvance?.adjustmentAmount || 0
       );
 
 
@@ -326,7 +328,8 @@ export const revertTallyUpdates = async (
         doc?.source,
         doc?.bill_amount || 0,
         totalAppliedReceipts,
-        totalAppliedPayments
+        totalAppliedPayments,
+        doc?.adjustmentAmount || 0
       );
 
       console.log(
@@ -683,7 +686,8 @@ export const updateAdvanceOnEdit = async (
         matchedOutStanding?.source,
         newAmount || 0,
         sumOfAppliedReceipts,
-        sumOfAppliedPayments
+        sumOfAppliedPayments,
+        matchedOutStanding?.adjustmentAmount || 0
       );
 
 

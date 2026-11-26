@@ -8,6 +8,8 @@ function FooterButton({
   mode,
   enablePaymentSplittingAsCompulsory,
   openAdditionalTile,
+  desktopLabel,
+  onReceivePayment,
 }) {
   const titleText =
     title.split("")[0]?.toUpperCase()?.concat(title.slice(1)) || "Title";
@@ -46,6 +48,8 @@ function FooterButton({
             enablePaymentSplittingAsCompulsory
           }
           openAdditionalTile={openAdditionalTile}
+          label={desktopLabel}
+          onReceivePayment={onReceivePayment}
         />
       </div>
     </div>

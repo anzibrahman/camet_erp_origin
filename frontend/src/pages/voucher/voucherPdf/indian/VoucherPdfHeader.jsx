@@ -15,7 +15,7 @@ function VoucherPdfHeader({
   /// to get voucher number name
   const getVoucherNumber = () => {
     if (!voucherType) return "";
-    if (voucherType === "sales" || voucherType === "vanSale") {
+    if (voucherType === "sales" || voucherType === "vanSale" || voucherType === "performaInvoice") {
       return "salesNumber";
     } else if (voucherType === "saleOrder") {
       return "orderNumber";
@@ -65,9 +65,9 @@ function VoucherPdfHeader({
         {configurations?.letterHeadUrl && configurations?.showLetterHead && (
         <img className="" src={configurations?.letterHeadUrl} alt="" />
       )}
-      {configurations?.printTitle && (
+      {(voucherType === "performaInvoice" || configurations?.printTitle) && (
         <div className="font-bold text-sm md:text-xl mb-2  text-center">
-          {configurations?.printTitle || ""}
+          {voucherType === "performaInvoice" ? "PROFORMA INVOICE" : configurations?.printTitle || ""}
         </div>
       )}
       <div>

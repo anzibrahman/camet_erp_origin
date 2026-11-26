@@ -1,0 +1,874 @@
+TAP version 13
+# calculateBillPending: voucherType=sales, billAmount=100, receipts=60, payments=20
+# calculateBillPending: voucherType=creditNote, billAmount=100, receipts=10, payments=20
+# calculateBillPending: voucherType=sales, billAmount=100, receipts=60, payments=20
+# billamountmap Map(1) { 'S1' => { remainingAmount: undefined, settledAmount: 10 } }
+# outstandingdata [
+#   {
+#     _id: new ObjectId('6ae82738a5d229ba450f9df9'),
+#     billId: 'S1',
+#     source: 'sales',
+#     bill_amount: 100,
+#     adjustmentAmount: 50,
+#     appliedReceipts: [],
+#     appliedPayments: []
+#   }
+# ]
+# calculateBillPending: voucherType=sales, billAmount=100, receipts=10, payments=0
+# balance 40
+# calculateBillPending: voucherType=sales, billAmount=100, receipts=0, payments=10
+# balance 60
+# line 260 salescontroller
+# companyid in the formattolocatedatedd new ObjectId('6ae82739a5d229ba450f9e6e')
+# doneeeeeeeeeeeeee
+# calculateBillPending: voucherType=sales, billAmount=30, receipts=0, payments=0
+# New bill balance: 30
+# old bill balance: 100
+# Sum of applied payments: 0
+# Sum of applied receipts: 0
+# Bill pending amount: 30
+# line 260 salescontroller
+# companyid in the formattolocatedatedd new ObjectId('6ae82739a5d229ba450f9e7a')
+# doneeeeeeeeeeeeee
+# calculateBillPending: voucherType=sales, billAmount=30, receipts=0, payments=0
+# New bill balance: 30
+# old bill balance: 100
+# Sum of applied payments: 0
+# Sum of applied receipts: 0
+# Bill pending amount: 30
+# Error editing sale: Error: Allocation storage failed
+#     at Object.<anonymous> (file:///C:/Users/hp/Desktop/camet_erp_origin/backend/tests/adjustment.test.js:222:61)
+#     at Object.apply (node:internal/test_runner/mock/mock:598:20)
+#     at allocateCreditToSales (file:///C:/Users/hp/Desktop/camet_erp_origin/backend/helpers/adjustmentHelper.js:82:20)
+#     at async finishAdjustmentEdit (file:///C:/Users/hp/Desktop/camet_erp_origin/backend/helpers/adjustmentHelper.js:165:27)
+#     at async editSale (file:///C:/Users/hp/Desktop/camet_erp_origin/backend/controllers/saleController.js:364:27)
+#     at async TestContext.<anonymous> (file:///C:/Users/hp/Desktop/camet_erp_origin/backend/tests/adjustment.test.js:225:2)
+#     at async Test.run (node:internal/test_runner/test:935:9)
+#     at async Test.processPendingSubtests (node:internal/test_runner/test:633:7)
+# reached here
+# creditnotecontroller line 294
+# companyid in the formattolocatedatedd new ObjectId('6ae82739a5d229ba450f9e86')
+# doneeeeeeeeeeeeee
+# calculateBillPending: voucherType=creditNote, billAmount=20, receipts=0, payments=0
+# New bill balance: 20
+# old bill balance: 50
+# Sum of applied payments: 0
+# Sum of applied receipts: 0
+# Bill pending amount: -20
+# reached here
+# creditnotecontroller line 294
+# companyid in the formattolocatedatedd new ObjectId('6ae82739a5d229ba450f9e92')
+# doneeeeeeeeeeeeee
+# calculateBillPending: voucherType=creditNote, billAmount=20, receipts=0, payments=0
+# New bill balance: 20
+# old bill balance: 50
+# Sum of applied payments: 0
+# Sum of applied receipts: 0
+# Bill pending amount: -20
+# Error: Allocation storage failed
+#     at Object.<anonymous> (file:///C:/Users/hp/Desktop/camet_erp_origin/backend/tests/adjustment.test.js:222:61)
+#     at Object.apply (node:internal/test_runner/mock/mock:598:20)
+#     at allocateCreditToSales (file:///C:/Users/hp/Desktop/camet_erp_origin/backend/helpers/adjustmentHelper.js:82:20)
+#     at async finishAdjustmentEdit (file:///C:/Users/hp/Desktop/camet_erp_origin/backend/helpers/adjustmentHelper.js:165:27)
+#     at async editCreditNote (file:///C:/Users/hp/Desktop/camet_erp_origin/backend/controllers/creditNoteController.js:392:5)
+#     at async TestContext.<anonymous> (file:///C:/Users/hp/Desktop/camet_erp_origin/backend/tests/adjustment.test.js:225:2)
+#     at async Test.run (node:internal/test_runner/test:935:9)
+#     at async Test.processPendingSubtests (node:internal/test_runner/test:633:7)
+# doc {
+#   series: [
+#     {
+#       _id: '6ae82739a5d229ba450f9efa',
+#       lastUsedNumber: 1,
+#       prefix: 'S-'
+#     }
+#   ]
+# }
+# doc 6ae82739a5d229ba450f9ef3 sales 6ae82739a5d229ba450f9efa
+# companyid in the formattolocatedatedd 6ae82739a5d229ba450f9ef3
+# doneeeeeeeeeeeeee
+# hasPaymentSplittingData false
+# === updateTallyData called ===
+# party.partyType: party
+# finalOutstandingAmount (valueToUpdateInTally): 200
+# hasPaymentSplittingData: false
+# party.partyType: party
+# ✅ ENTERING PARTY TYPE CONDITION
+# create outstanding for bill_no: S-01
+# 📝 Bill Data to upsert: {
+#   "Primary_user_id": "6ae82739a5d229ba450f9ef4",
+#   "bill_no": "S-01",
+#   "billId": "6ae82739a5d229ba450f9ef8",
+#   "cmp_id": "6ae82739a5d229ba450f9ef3",
+#   "party_id": "6ae82739a5d229ba450f9ef5",
+#   "accountGroup": "6ae82739a5d229ba450f9efc",
+#   "bill_amount": 200,
+#   "bill_date": "2026-10-22T00:00:00.000Z",
+#   "bill_due_date": "2026-10-22T00:00:00.000Z",
+#   "bill_pending_amt": 200,
+#   "party_name": "Customer",
+#   "user_id": "123",
+#   "source": "sales",
+#   "classification": "Dr"
+# }
+# ✅ TallyData upserted successfully: {
+#   _id: new ObjectId('6ae82739a5d229ba450f9ef9'),
+#   cmp_id: '6ae82739a5d229ba450f9ef3',
+#   Primary_user_id: new ObjectId('6ae82739a5d229ba450f9ef4'),
+#   adjustmentAmount: 0,
+#   billId: '6ae82739a5d229ba450f9ef8',
+#   source: 'sales',
+#   bill_pending_amt: 200,
+#   save: [AsyncFunction: save],
+#   bill_no: 'S-01',
+#   party_id: new ObjectId('6ae82739a5d229ba450f9ef5'),
+#   accountGroup: new ObjectId('6ae82739a5d229ba450f9efc'),
+#   subGroup: undefined,
+#   bill_amount: 200,
+#   bill_date: 2026-10-22T00:00:00.000Z,
+#   bill_due_date: 2026-10-22T00:00:00.000Z,
+#   email: undefined,
+#   mobile_no: undefined,
+#   party_name: 'Customer',
+#   user_id: '123',
+#   classification: 'Dr'
+# }
+# doc {
+#   series: [
+#     {
+#       _id: '6ae82739a5d229ba450f9f05',
+#       lastUsedNumber: 1,
+#       prefix: 'S-'
+#     }
+#   ]
+# }
+# doc 6ae82739a5d229ba450f9efe sales 6ae82739a5d229ba450f9f05
+# companyid in the formattolocatedatedd 6ae82739a5d229ba450f9efe
+# doneeeeeeeeeeeeee
+# hasPaymentSplittingData false
+# === updateTallyData called ===
+# party.partyType: party
+# finalOutstandingAmount (valueToUpdateInTally): 200
+# hasPaymentSplittingData: false
+# party.partyType: party
+# ✅ ENTERING PARTY TYPE CONDITION
+# create outstanding for bill_no: S-01
+# 📝 Bill Data to upsert: {
+#   "Primary_user_id": "6ae82739a5d229ba450f9eff",
+#   "bill_no": "S-01",
+#   "billId": "6ae82739a5d229ba450f9f03",
+#   "cmp_id": "6ae82739a5d229ba450f9efe",
+#   "party_id": "6ae82739a5d229ba450f9f00",
+#   "accountGroup": "6ae82739a5d229ba450f9f07",
+#   "bill_amount": 200,
+#   "bill_date": "2026-10-22T00:00:00.000Z",
+#   "bill_due_date": "2026-10-22T00:00:00.000Z",
+#   "bill_pending_amt": 200,
+#   "party_name": "Customer",
+#   "user_id": "123",
+#   "source": "sales",
+#   "classification": "Dr"
+# }
+# ✅ TallyData upserted successfully: {
+#   _id: new ObjectId('6ae82739a5d229ba450f9f04'),
+#   cmp_id: '6ae82739a5d229ba450f9efe',
+#   Primary_user_id: new ObjectId('6ae82739a5d229ba450f9eff'),
+#   adjustmentAmount: 0,
+#   billId: '6ae82739a5d229ba450f9f03',
+#   source: 'sales',
+#   bill_pending_amt: 200,
+#   save: [AsyncFunction: save],
+#   bill_no: 'S-01',
+#   party_id: new ObjectId('6ae82739a5d229ba450f9f00'),
+#   accountGroup: new ObjectId('6ae82739a5d229ba450f9f07'),
+#   subGroup: undefined,
+#   bill_amount: 200,
+#   bill_date: 2026-10-22T00:00:00.000Z,
+#   bill_due_date: 2026-10-22T00:00:00.000Z,
+#   email: undefined,
+#   mobile_no: undefined,
+#   party_name: 'Customer',
+#   user_id: '123',
+#   classification: 'Dr'
+# }
+# (node:4724) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+# (Use `node --trace-deprecation ...` to show where the warning was created)
+# Subtest: partial sale
+ok 1 - partial sale
+  ---
+  duration_ms: 11.1248
+  ...
+# Subtest: equal amounts
+ok 2 - equal amounts
+  ---
+  duration_ms: 1.4006
+  ...
+# Subtest: excess credit
+ok 3 - excess credit
+  ---
+  duration_ms: 1.1442
+  ...
+# Subtest: multiple sales
+ok 4 - multiple sales
+  ---
+  duration_ms: 1.5436
+  ...
+# Subtest: paid sale
+ok 5 - paid sale
+  ---
+  duration_ms: 2.0626
+  ...
+# Subtest: duplicate sale selection allocates once
+ok 6 - duplicate sale selection allocates once
+  ---
+  duration_ms: 3.1783
+  ...
+# Subtest: unrelated or cancelled selected sale is rejected
+ok 7 - unrelated or cancelled selected sale is rejected
+  ---
+  duration_ms: 2.8968
+  ...
+# Subtest: standalone credit note leaves both balances open without a selection
+ok 8 - standalone credit note leaves both balances open without a selection
+  ---
+  duration_ms: 0.7579
+  ...
+# Subtest: sale cancellation restores both sides exactly once
+ok 9 - sale cancellation restores both sides exactly once
+  ---
+  duration_ms: 3.4231
+  ...
+# Subtest: credit note cancellation restores both sides exactly once
+ok 10 - credit note cancellation restores both sides exactly once
+  ---
+  duration_ms: 2.0996
+  ...
+# Subtest: receipt and payment equations preserve adjustments on either side
+ok 11 - receipt and payment equations preserve adjustments on either side
+  ---
+  duration_ms: 3.2836
+  ...
+# Subtest: active adjustments allow edits
+ok 12 - active adjustments allow edits
+  ---
+  duration_ms: 0.9796
+  ...
+# Subtest: receipt and payment writes keep adjustment balance
+ok 13 - receipt and payment writes keep adjustment balance
+  ---
+  duration_ms: 7.4634
+  ...
+# Subtest: sales edit to 30 recalculates and preserves history
+ok 14 - sales edit to 30 recalculates and preserves history
+  ---
+  duration_ms: 5.651
+  ...
+# Subtest: sales edit to 150 recalculates and preserves history
+ok 15 - sales edit to 150 recalculates and preserves history
+  ---
+  duration_ms: 3.7466
+  ...
+# Subtest: creditNote edit to 20 recalculates and preserves history
+ok 16 - creditNote edit to 20 recalculates and preserves history
+  ---
+  duration_ms: 1.8956
+  ...
+# Subtest: creditNote edit to 120 recalculates and preserves history
+ok 17 - creditNote edit to 120 recalculates and preserves history
+  ---
+  duration_ms: 2.8452
+  ...
+# Subtest: credit note edit redistributes in oldest-sale order
+ok 18 - credit note edit redistributes in oldest-sale order
+  ---
+  duration_ms: 4.1327
+  ...
+# Subtest: sale reduction retains surplus without adjusting another invoice
+ok 19 - sale reduction retains surplus without adjusting another invoice
+  ---
+  duration_ms: 1.8141
+  ...
+# Subtest: zero amount edit releases allocation without leaving an active pair
+ok 20 - zero amount edit releases allocation without leaving an active pair
+  ---
+  duration_ms: 3.2255
+  ...
+# Subtest: sale increase uses available credit from all three linked notes
+ok 21 - sale increase uses available credit from all three linked notes
+  ---
+  duration_ms: 3.8383
+  ...
+# Subtest: sales edit transaction updates both balances before commit
+ok 22 - sales edit transaction updates both balances before commit
+  ---
+  duration_ms: 52.0802
+  ...
+# Subtest: sales edit transaction aborts on allocation failure
+ok 23 - sales edit transaction aborts on allocation failure
+  ---
+  duration_ms: 7.3196
+  ...
+# Subtest: creditNote edit transaction updates both balances before commit
+ok 24 - creditNote edit transaction updates both balances before commit
+  ---
+  duration_ms: 9.9786
+  ...
+# Subtest: creditNote edit transaction aborts on allocation failure
+ok 25 - creditNote edit transaction aborts on allocation failure
+  ---
+  duration_ms: 13.3744
+  ...
+# Subtest: changing customer releases old links without applying another customer's credit
+ok 26 - changing customer releases old links without applying another customer's credit
+  ---
+  duration_ms: 4.574
+  ...
+# Subtest: zero edit followed by increase reuses the reversed pair under the original unique index
+ok 27 - zero edit followed by increase reuses the reversed pair under the original unique index
+  ---
+  duration_ms: 3.7062
+  ...
+# Subtest: selected credit adjusts only the selected invoice, leaving older sales open
+ok 28 - selected credit adjusts only the selected invoice, leaving older sales open
+  ---
+  duration_ms: 1.1113
+  ...
+# Subtest: standalone note stays unallocated on edit
+ok 29 - standalone note stays unallocated on edit
+  ---
+  duration_ms: 2.0493
+  ...
+# Subtest: standalone sale of 150 does not consume earlier credit
+ok 30 - standalone sale of 150 does not consume earlier credit
+  ---
+  duration_ms: 0.6426
+  ...
+# Subtest: standalone sale of 200 does not consume earlier credit
+ok 31 - standalone sale of 200 does not consume earlier credit
+  ---
+  duration_ms: 0.2965
+  ...
+# Subtest: standalone sale of 250 does not consume earlier credit
+ok 32 - standalone sale of 250 does not consume earlier credit
+  ---
+  duration_ms: 0.2753
+  ...
+# Subtest: paid, cash, and non-sales documents never consume customer credit
+ok 33 - paid, cash, and non-sales documents never consume customer credit
+  ---
+  duration_ms: 0.8042
+  ...
+# Subtest: standalone sale leaves earlier credit untouched even when adjustment storage would fail: false
+ok 34 - standalone sale leaves earlier credit untouched even when adjustment storage would fail: false
+  ---
+  duration_ms: 39.8499
+  ...
+# Subtest: standalone sale leaves earlier credit untouched even when adjustment storage would fail: true
+ok 35 - standalone sale leaves earlier credit untouched even when adjustment storage would fail: true
+  ---
+  duration_ms: 29.5365
+  ...
+# Subtest: source-aware credit only adjusts each invoice by its own remaining returned amount
+ok 36 - source-aware credit only adjusts each invoice by its own remaining returned amount
+  ---
+  duration_ms: 12.2089
+  ...
+# Subtest: paid source surplus cannot settle another selected invoice or be reapplied twice
+ok 37 - paid source surplus cannot settle another selected invoice or be reapplied twice
+  ---
+  duration_ms: 4.1368
+  ...
+# (node:11700) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+# (Use `node --trace-deprecation ...` to show where the warning was created)
+# Subtest: pricing variants add stock once with combined billed and actual quantities
+ok 38 - pricing variants add stock once with combined billed and actual quantities
+  ---
+  duration_ms: 3.6899
+  ...
+# Subtest: different destinations remain separate and disabled rows do not affect stock
+ok 39 - different destinations remain separate and disabled rows do not affect stock
+  ---
+  duration_ms: 0.6838
+  ...
+# Subtest: saved Mongoose items retain product IDs, stock flags and quantities
+ok 40 - saved Mongoose items retain product IDs, stock flags and quantities
+  ---
+  duration_ms: 28.4929
+  ...
+# Subtest: missing product identity is rejected before any stock lookup
+ok 41 - missing product identity is rejected before any stock lookup
+  ---
+  duration_ms: 0.9949
+  ...
+# (node:13364) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+# (Use `node --trace-deprecation ...` to show where the warning was created)
+# Subtest: party sales query is scoped to company, owner and customer, excludes cancelled sales and paginates
+ok 42 - party sales query is scoped to company, owner and customer, excludes cancelled sales and paginates
+  ---
+  duration_ms: 5.3378
+  ...
+# Subtest: unassigned account cannot inspect party sales
+ok 43 - unassigned account cannot inspect party sales
+  ---
+  duration_ms: 0.7535
+  ...
+# Subtest: invalid party identifier is rejected
+ok 44 - invalid party identifier is rejected
+  ---
+  duration_ms: 0.5169
+  ...
+# Subtest: organization-array assignment allows access with empty configurations
+ok 45 - organization-array assignment allows access with empty configurations
+  ---
+  duration_ms: 1.4168
+  ...
+# Subtest: another organization assignment does not allow access
+ok 46 - another organization assignment does not allow access
+  ---
+  duration_ms: 0.9215
+  ...
+# Subtest: assignment cannot bypass company ownership or blocked-company check
+ok 47 - assignment cannot bypass company ownership or blocked-company check
+  ---
+  duration_ms: 0.6778
+  ...
+# sorceeeee null
+# sorceeeee null
+# sorceeeee null
+# Error in getting bank and cash sources: Error: database unavailable
+#     at Object.select (file:///C:/Users/hp/Desktop/camet_erp_origin/backend/tests/paymentSources.test.js:21:58)
+#     at getBankAndCashSources (file:///C:/Users/hp/Desktop/camet_erp_origin/backend/controllers/secondaryUserController.js:1704:12)
+#     at TestContext.<anonymous> (file:///C:/Users/hp/Desktop/camet_erp_origin/backend/tests/paymentSources.test.js:21:120)
+#     at Test.runInAsyncScope (node:async_hooks:211:14)
+#     at Test.run (node:internal/test_runner/test:934:25)
+#     at Test.processPendingSubtests (node:internal/test_runner/test:633:18)
+#     at Test.postRun (node:internal/test_runner/test:1045:19)
+#     at Test.run (node:internal/test_runner/test:973:12)
+#     at async Test.processPendingSubtests (node:internal/test_runner/test:633:7)
+# (node:22728) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+# (Use `node --trace-deprecation ...` to show where the warning was created)
+# Subtest: cash/bank loader includes local ledgers without import IDs and scopes company/owner
+ok 48 - cash/bank loader includes local ledgers without import IDs and scopes company/owner
+  ---
+  duration_ms: 15.1484
+  ...
+# Subtest: company without payment ledgers returns explicit empty lists
+ok 49 - company without payment ledgers returns explicit empty lists
+  ---
+  duration_ms: 5.0448
+  ...
+# Subtest: payment source loading failures return errors rather than empty success
+ok 50 - payment source loading failures return errors rather than empty success
+  ---
+  duration_ms: 2.614
+  ...
+# (node:19628) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+# (Use `node --trace-deprecation ...` to show where the warning was created)
+# Subtest: mixed save adjusts the selected original sale and preserves the new sale outstanding
+ok 51 - mixed save adjusts the selected original sale and preserves the new sale outstanding
+  ---
+  duration_ms: 45.8368
+  ...
+# Subtest: sale-only save never allocates a credit note number or creates an adjustment
+ok 52 - sale-only save never allocates a credit note number or creates an adjustment
+  ---
+  duration_ms: 9.3982
+  ...
+# Subtest: return-only save uses only the credit note series and adjusts the original source sale
+ok 53 - return-only save uses only the credit note series and adjusts the original source sale
+  ---
+  duration_ms: 12.4868
+  ...
+# Subtest: excess return credit remains as negative outstanding after settling the sale
+ok 54 - excess return credit remains as negative outstanding after settling the sale
+  ---
+  duration_ms: 7.2173
+  ...
+# Subtest: cash already received reduces only the new sale balance
+ok 55 - cash already received reduces only the new sale balance
+  ---
+  duration_ms: 12.2361
+  ...
+# Subtest: a fully paid new sale does not change the selected original invoice adjustment
+ok 56 - a fully paid new sale does not change the selected original invoice adjustment
+  ---
+  duration_ms: 3.6928
+  ...
+# Subtest: credit-note failure rolls back sale, stock work and both sequence allocations
+ok 57 - credit-note failure rolls back sale, stock work and both sequence allocations
+  ---
+  duration_ms: 6.4704
+  ...
+# Subtest: adjustment failure rolls back both documents and their outstanding records
+ok 58 - adjustment failure rolls back both documents and their outstanding records
+  ---
+  duration_ms: 5.2898
+  ...
+# Subtest: unchanged retry returns the committed result without creating duplicate vouchers
+ok 59 - unchanged retry returns the committed result without creating duplicate vouchers
+  ---
+  duration_ms: 14.8189
+  ...
+# Subtest: reusing a request ID with changed data is rejected
+ok 60 - reusing a request ID with changed data is rejected
+  ---
+  duration_ms: 20.513
+  ...
+# Subtest: unauthorized company access cannot allocate numbers or write documents
+ok 61 - unauthorized company access cannot allocate numbers or write documents
+  ---
+  duration_ms: 1.8753
+  ...
+# Subtest: item flags, wrong customers, invalid quantities and already-saved returns are rejected
+ok 62 - item flags, wrong customers, invalid quantities and already-saved returns are rejected
+  ---
+  duration_ms: 2.3424
+  ...
+# Subtest: the backend derives separate totals and stock quantities rather than using header overrides
+ok 63 - the backend derives separate totals and stock quantities rather than using header overrides
+  ---
+  duration_ms: 1.5199
+  ...
+# Subtest: series selection respects company, voucher type and secondary-user restrictions
+ok 64 - series selection respects company, voucher type and secondary-user restrictions
+  ---
+  duration_ms: 8.1225
+  ...
+# Subtest: foreign products and cancelled or unrelated source sales are rejected
+ok 65 - foreign products and cancelled or unrelated source sales are rejected
+  ---
+  duration_ms: 2.8408
+  ...
+# Subtest: the real voucher allocator takes a new number from each independent series
+ok 66 - the real voucher allocator takes a new number from each independent series
+  ---
+  duration_ms: 2.201
+  ...
+# Subtest: the real posting helpers write Sales and CreditNote models plus Dr and Cr outstanding in the shared session
+ok 67 - the real posting helpers write Sales and CreditNote models plus Dr and Cr outstanding in the shared session
+  ---
+  duration_ms: 157.5474
+  ...
+# Subtest: real stock helpers add returned stock and subtract new sale quantities for the same product
+ok 68 - real stock helpers add returned stock and subtract new sale quantities for the same product
+  ---
+  duration_ms: 5.2244
+  ...
+# Subtest: authorization uses the owned unblocked company, assigned user and authoritative customer ledger
+ok 69 - authorization uses the owned unblocked company, assigned user and authoritative customer ledger
+  ---
+  duration_ms: 2.46
+  ...
+# Subtest: foreign cash/bank payment accounts are rejected before posting
+ok 70 - foreign cash/bank payment accounts are rejected before posting
+  ---
+  duration_ms: 1.5261
+  ...
+# Subtest: mixed save leaves older credit notes untouched
+ok 71 - mixed save leaves older credit notes untouched
+  ---
+  duration_ms: 5.5389
+  ...
+# Subtest: selected unpaid original invoice with return 400 preserves the new sale
+ok 72 - selected unpaid original invoice with return 400 preserves the new sale
+  ---
+  duration_ms: 2.7017
+  ...
+# Subtest: selected unpaid original invoice with return 1200 preserves the new sale
+ok 73 - selected unpaid original invoice with return 1200 preserves the new sale
+  ---
+  duration_ms: 2.1157
+  ...
+# Subtest: selected half paid original invoice with return 400 preserves the new sale
+ok 74 - selected half paid original invoice with return 400 preserves the new sale
+  ---
+  duration_ms: 2.149
+  ...
+# Subtest: selected half paid original invoice with return 1200 preserves the new sale
+ok 75 - selected half paid original invoice with return 1200 preserves the new sale
+  ---
+  duration_ms: 2.1575
+  ...
+# Subtest: selected fully paid original invoice with return 400 preserves the new sale
+ok 76 - selected fully paid original invoice with return 400 preserves the new sale
+  ---
+  duration_ms: 2.1524
+  ...
+# Subtest: selected fully paid original invoice with return 1200 preserves the new sale
+ok 77 - selected fully paid original invoice with return 1200 preserves the new sale
+  ---
+  duration_ms: 2.7806
+  ...
+# Subtest: saved source sales retain the credit note ID in the same transaction
+ok 78 - saved source sales retain the credit note ID in the same transaction
+  ---
+  duration_ms: 1.6199
+  ...
+# Subtest: removed source invoices are excluded from one credit note's references and adjustment
+ok 79 - removed source invoices are excluded from one credit note's references and adjustment
+  ---
+  duration_ms: 2.9828
+  ...
+# Subtest: reference write failure rolls back credit note, sale and allocations
+ok 80 - reference write failure rolls back credit note, sale and allocations
+  ---
+  duration_ms: 1.8143
+  ...
+# Subtest: mixed transaction receives 0 against only the new sale
+ok 81 - mixed transaction receives 0 against only the new sale
+  ---
+  duration_ms: 2.3358
+  ...
+# Subtest: mixed transaction receives 500 against only the new sale
+ok 82 - mixed transaction receives 500 against only the new sale
+  ---
+  duration_ms: 2.5102
+  ...
+# Subtest: mixed transaction receives 1000 against only the new sale
+ok 83 - mixed transaction receives 1000 against only the new sale
+  ---
+  duration_ms: 3.1913
+  ...
+# Subtest: receipt failure rolls back the sale, credit note and transaction numbers
+ok 84 - receipt failure rolls back the sale, credit note and transaction numbers
+  ---
+  duration_ms: 2.358
+  ...
+# Subtest: real split-payment receipts settle only the new sale once and retain its unpaid balance
+ok 85 - real split-payment receipts settle only the new sale once and retain its unpaid balance
+  ---
+  duration_ms: 41.8325
+  ...
+# Subtest: sale posting leaves the gross outstanding for receipts and avoids duplicate sale payment settlements
+ok 86 - sale posting leaves the gross outstanding for receipts and avoids duplicate sale payment settlements
+  ---
+  duration_ms: 20.462
+  ...
+# Subtest: Qty All copies original rates, taxes and stock identities without mutating the sale
+ok 87 - Qty All copies original rates, taxes and stock identities without mutating the sale
+  ---
+  duration_ms: 9.2309
+  ...
+# Subtest: partial return quantities recalculate amounts and preserve actual/billed ratios
+ok 88 - partial return quantities recalculate amounts and preserve actual/billed ratios
+  ---
+  duration_ms: 1.2892
+  ...
+# Subtest: zero quantity rows are excluded from selected credit quantities
+ok 89 - zero quantity rows are excluded from selected credit quantities
+  ---
+  duration_ms: 1.3457
+  ...
+# Subtest: negative and non-finite return quantities are rejected
+ok 90 - negative and non-finite return quantities are rejected
+  ---
+  duration_ms: 2.192
+  ...
+# Subtest: inclusive-tax sale rate remains inclusive in the credit note
+ok 91 - inclusive-tax sale rate remains inclusive in the credit note
+  ---
+  duration_ms: 1.1098
+  ...
+# Subtest: multiple sales combine matching rows and preserve total and actual quantities
+ok 92 - multiple sales combine matching rows and preserve total and actual quantities
+  ---
+  duration_ms: 2.5789
+  ...
+# Subtest: any differing rate, discount, tax, or inclusive setting remains separate
+ok 93 - any differing rate, discount, tax, or inclusive setting remains separate
+  ---
+  duration_ms: 7.8454
+  ...
+# Subtest: equal amount discounts accumulate without changing the returned value
+ok 94 - equal amount discounts accumulate without changing the returned value
+  ---
+  duration_ms: 1.9027
+  ...
+# Subtest: matching items retain separate godown and batch destinations
+ok 95 - matching items retain separate godown and batch destinations
+  ---
+  duration_ms: 1.6306
+  ...
+# Subtest: returns cannot exceed original quantity and leave source history unchanged
+ok 96 - returns cannot exceed original quantity and leave source history unchanged
+  ---
+  duration_ms: 3.192
+  ...
+# Subtest: each stock row is capped even when the overall product quantity is within the sale total
+ok 97 - each stock row is capped even when the overall product quantity is within the sale total
+  ---
+  duration_ms: 1.0153
+  ...
+# Subtest: adding from two godowns keeps stock identities and fractional quantities separate
+ok 98 - adding from two godowns keeps stock identities and fractional quantities separate
+  ---
+  duration_ms: 9.9993
+  ...
+# Subtest: re-adding a removed godown matches identity instead of another godown's array index
+ok 99 - re-adding a removed godown matches identity instead of another godown's array index
+  ---
+  duration_ms: 1.5975
+  ...
+# Subtest: changing price level recalculates taxes and keeps quantities and discounts
+ok 100 - changing price level recalculates taxes and keeps quantities and discounts
+  ---
+  duration_ms: 2.4445
+  ...
+# Subtest: inclusive rates, cess and zero-rate rows use the ERP calculation independently
+ok 101 - inclusive rates, cess and zero-rate rows use the ERP calculation independently
+  ---
+  duration_ms: 2.5204
+  ...
+# Subtest: inactive godown rows do not contribute stale discounts or totals
+ok 102 - inactive godown rows do not contribute stale discounts or totals
+  ---
+  duration_ms: 1.329
+  ...
+# Subtest: entry tax checkbox switches between inclusive and exclusive amounts
+ok 103 - entry tax checkbox switches between inclusive and exclusive amounts
+  ---
+  duration_ms: 1.5018
+  ...
+# Subtest: unchecking inclusive tax overrides stored inclusive godown flags
+ok 104 - unchecking inclusive tax overrides stored inclusive godown flags
+  ---
+  duration_ms: 2.122
+  ...
+# Subtest: entry loads the edit modal's saved flag before product defaults
+ok 105 - entry loads the edit modal's saved flag before product defaults
+  ---
+  duration_ms: 0.5398
+  ...
+# Subtest: voucher item rate matching separates different rates, tax flags and discounted rows
+ok 106 - voucher item rate matching separates different rates, tax flags and discounted rows
+  ---
+  duration_ms: 4.9743
+  ...
+# Subtest: rate-aware item matching is reusable for purchases, credit notes, and debit notes
+ok 107 - rate-aware item matching is reusable for purchases, credit notes, and debit notes
+  ---
+  duration_ms: 3.3606
+  ...
+# Subtest: return draft preserves selected quantities and sale history
+ok 108 - return draft preserves selected quantities and sale history
+  ---
+  duration_ms: 16.224
+  ...
+# Subtest: returns appear beside sale items without mutating the sale payload or totals
+ok 109 - returns appear beside sale items without mutating the sale payload or totals
+  ---
+  duration_ms: 2.8305
+  ...
+# Subtest: saved credit note rows remain visible with the saved credit note number
+ok 110 - saved credit note rows remain visible with the saved credit note number
+  ---
+  duration_ms: 1.8546
+  ...
+# Subtest: saving uses a credit note series and sends only return items to createCreditNote
+ok 111 - saving uses a credit note series and sends only return items to createCreditNote
+  ---
+  duration_ms: 9.7847
+  ...
+# Subtest: save failures preserve pending return products
+ok 112 - save failures preserve pending return products
+  ---
+  duration_ms: 4.4932
+  ...
+# Subtest: missing credit note series blocks saving without posting
+ok 113 - missing credit note series blocks saving without posting
+  ---
+  duration_ms: 1.7588
+  ...
+# Subtest: mismatched customers cannot create or save return drafts
+ok 114 - mismatched customers cannot create or save return drafts
+  ---
+  duration_ms: 3.2103
+  ...
+# Subtest: empty product selection cannot be imported
+ok 115 - empty product selection cannot be imported
+  ---
+  duration_ms: 0.84
+  ...
+# Subtest: return state stays separate from sales and clears when the customer changes
+ok 116 - return state stays separate from sales and clears when the customer changes
+  ---
+  duration_ms: 142.7319
+  ...
+# Subtest: saved credit notes cannot be submitted again
+ok 117 - saved credit notes cannot be submitted again
+  ---
+  duration_ms: 3.0103
+  ...
+# Subtest: return products are first even when there are many normal sale rows
+ok 118 - return products are first even when there are many normal sale rows
+  ---
+  duration_ms: 2.1254
+  ...
+# Subtest: import keys work when randomUUID is unavailable on an HTTP origin
+ok 119 - import keys work when randomUUID is unavailable on an HTTP origin
+  ---
+  duration_ms: 1.6334
+  ...
+# Subtest: return saving accepts the JSON-encoded date initialized by the Sales page
+ok 120 - return saving accepts the JSON-encoded date initialized by the Sales page
+  ---
+  duration_ms: 1.5036
+  ...
+# Subtest: Save Transaction includes unsaved returns separately and excludes already-saved notes
+ok 121 - Save Transaction includes unsaved returns separately and excludes already-saved notes
+  ---
+  duration_ms: 11.8967
+  ...
+# Subtest: unchanged transaction retry preserves its ID, while edited products get a new ID
+ok 122 - unchanged transaction retry preserves its ID, while edited products get a new ID
+  ---
+  duration_ms: 2.3555
+  ...
+# Subtest: three sales show one merged A while retaining both original invoice quantities
+ok 123 - three sales show one merged A while retaining both original invoice quantities
+  ---
+  duration_ms: 3.1949
+  ...
+# Subtest: remove A from S1 excludes S1, leaving S2's A and B and S3's D
+ok 124 - remove A from S1 excludes S1, leaving S2's A and B and S3's D
+  ---
+  duration_ms: 2.5376
+  ...
+# Subtest: removing both A quantities excludes S1 but keeps S2 for its B
+ok 125 - removing both A quantities excludes S1 but keeps S2 for its B
+  ---
+  duration_ms: 1.714
+  ...
+# Subtest: partial source removal scales taxes and actual quantities and rejects increases
+ok 126 - partial source removal scales taxes and actual quantities and rejects increases
+  ---
+  duration_ms: 1.9041
+  ...
+# Subtest: same product at different sale rates has one display row and retains source values
+ok 127 - same product at different sale rates has one display row and retains source values
+  ---
+  duration_ms: 2.2292
+  ...
+# Subtest: modal decrement requires choosing which original sale loses one unit
+ok 128 - modal decrement requires choosing which original sale loses one unit
+  ---
+  duration_ms: 3.5329
+  ...
+# Subtest: modal removing both merged A units drops S1 and keeps S2's other product
+ok 129 - modal removing both merged A units drops S1 and keeps S2's other product
+  ---
+  duration_ms: 2.4774
+  ...
+# Subtest: modal disallows increasing quantities and can remove the last return product
+ok 130 - modal disallows increasing quantities and can remove the last return product
+  ---
+  duration_ms: 2.366
+  ...
+1..130
+# tests 130
+# suites 0
+# pass 130
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 18737.5057

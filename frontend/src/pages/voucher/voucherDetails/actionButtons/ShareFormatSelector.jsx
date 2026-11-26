@@ -31,10 +31,14 @@ export function ShareFormatSelector({ open, setOpen, voucherId, voucherType,data
   const formats = [
     {
       id: "tax-invoice",
-      label: "Tax Invoice",
+      label: voucherType === "performaInvoice" ? "Proforma Invoice" : "Tax Invoice",
       icon: <IoDocumentTextSharp size={20} />,
     },
   ];
+
+  if (voucherType === "performaInvoice") {
+    formats.push({ id: "pos", label: "POS Format", icon: <HiDocument size={20} /> });
+  }
 
   if (
     voucherType === "sales" ||

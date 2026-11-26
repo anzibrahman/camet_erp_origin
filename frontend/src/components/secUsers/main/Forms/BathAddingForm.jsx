@@ -20,6 +20,7 @@ function BatchAddingForm({ from, taxInclusive = false }) {
 
   // Batch specific fields
   const [batch, setBatch] = useState("");
+  const [batchError, setBatchError] = useState("");
   const [expirationDate, setExpirationDate] = useState(new Date());
   const [manufactureDate, setManufactureDate] = useState(new Date());
 
@@ -80,6 +81,8 @@ function BatchAddingForm({ from, taxInclusive = false }) {
   const { partyName } = partyFromRedux;
 
   const selectedItem = location?.state?.item;
+  const selectedGodownId = location?.state?.selectedGodownId || "";
+  const returnToDesktopEntry = location?.state?.returnToDesktopEntry === true;
 
   const { configurations } = useSelector(
     (state) => state.secSelectedOrganization.secSelectedOrg
@@ -285,6 +288,7 @@ function BatchAddingForm({ from, taxInclusive = false }) {
   useEffect(() => {
     const currentItem = selectedItem;
     setItem(currentItem);
+    if (currentItem?.gdnEnabled && selectedGodownId) setSelectedGodown(selectedGodownId);
 
     if (selectedItem && currentItem) {
       // setNewPrice(currentItem?.rate || 0);
@@ -308,7 +312,7 @@ function BatchAddingForm({ from, taxInclusive = false }) {
     setSgstValue(currentItem?.sgst || 0);
     setAdditionalCess(currentItem?.addl_cess || 0);
     setAddlCessValue(currentItem?.addl_cess || 0);
-  }, [selectedItem, orgId, taxInclusive]);
+  }, [selectedItem, selectedGodownId, orgId, taxInclusive]);
 
   useEffect(() => {
     // Create a mock item object with structure needed for calculateTotal
@@ -431,17 +435,17 @@ function BatchAddingForm({ from, taxInclusive = false }) {
       return false;
     }
 
-    if (
-      item?.GodownList?.some((godown) => {
-        const isGodownMatch = item?.gdnEnabled
-          ? godown?.godownMongoDbId === selectedGodown
-          : true;
-        const isBatchMatch =
-          godown?.batch.toLowerCase() === batch.toLowerCase();
-        return isGodownMatch && isBatchMatch;
-      })
-    ) {
-      alert("Batch already exists");
+    const normalizedBatch = batch.trim().toLowerCase();
+    const selectedGodownKey = String(selectedGodown || "");
+    const duplicateBatch = item?.GodownList?.some((godown) => {
+      const godownReference = godown?.godownMongoDbId || godown?.godown_id || "";
+      const godownKey = String(godownReference?._id || godownReference);
+      const isGodownMatch = item?.gdnEnabled ? godownKey === selectedGodownKey : true;
+      const isBatchMatch = String(godown?.batch || "").trim().toLowerCase() === normalizedBatch;
+      return isGodownMatch && isBatchMatch;
+    });
+    if (duplicateBatch) {
+      setBatchError("This batch name already exists in the selected Godown.");
       return false;
     }
 
@@ -568,6 +572,11 @@ function BatchAddingForm({ from, taxInclusive = false }) {
 
     updatedItem.isExpanded = true;
 
+    if (returnToDesktopEntry) {
+      window.sessionStorage.setItem("desktopPurchasePendingBatch", JSON.stringify({ item: updatedItem, batchName: batch }));
+      navigate(-1, { replace: true });
+      return;
+    }
 
     if (
       updatedItem?.added !== undefined &&
@@ -588,10 +597,10 @@ function BatchAddingForm({ from, taxInclusive = false }) {
   return (
     <div>
       <div className="">
-        <div className="min-h-screen bg-gray-100 flex flex-col justify-center">
-          <div className="relative md:py-4 sm:max-w-xl sm:mx-auto">
-            <div className="relative px-4 py-10 bg-white mx-5 md:mx-0 shadow sm:p-10">
-              <div className="max-w-md mx-auto">
+        <div className="batch-add-form min-h-screen bg-gray-100 flex flex-col justify-center">
+          <div className="batch-add-shell relative md:py-4 sm:max-w-xl sm:mx-auto">
+            <div className="batch-add-card relative px-4 py-10 bg-white mx-5 md:mx-0 shadow sm:p-10">
+              <div className="batch-add-content max-w-md mx-auto">
                 <div className="flex items-center space-x-5">
                   <div className="h-14 w-14 bg-yellow-200 rounded-full flex flex-shrink-0 justify-center items-center text-yellow-500 text-2xl font-mono">
                     <FaBoxOpen />
@@ -609,12 +618,13 @@ function BatchAddingForm({ from, taxInclusive = false }) {
                     <div className="flex flex-col">
                       <label className="leading-loose">Batch Name</label>
                       <input
-                        onChange={(e) => setBatch(e.target.value)}
+                        onChange={(e) => { setBatch(e.target.value); setBatchError(""); }}
                         value={batch}
                         type="text"
                         className="px-4 py-2 border focus:ring-gray-500 focus:border-gray-900 w-full sm:text-sm border-gray-300 rounded-md focus:outline-none text-gray-600"
                         placeholder="Enter batch name"
                       />
+                      {batchError && <p className="mt-1 text-xs text-red-600">{batchError}</p>}
                     </div>
 
                     <div className="flex flex-col sm:flex-row gap-4">
@@ -679,7 +689,7 @@ function BatchAddingForm({ from, taxInclusive = false }) {
                         <label className="leading-loose">Select Godown</label>
                         <select
                           value={selectedGodown}
-                          onChange={(e) => setSelectedGodown(e.target.value)}
+                          onChange={(e) => { setSelectedGodown(e.target.value); setBatchError(""); }}
                           className="px-4 py-2 border focus:ring-gray-500 focus:border-gray-900 w-full sm:text-sm border-gray-300 rounded-md focus:outline-none text-gray-600"
                         >
                           {godowns.map((godown) => (

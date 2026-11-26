@@ -1,3 +1,4 @@
+import { creditNoteStockItems as debitNoteStockItems } from "./creditNoteStockItems.js";
 import productModel from "../models/productModel.js";
 import debitNoteModel from "../models/debitNoteModel.js";
 import { formatToLocalDate, truncateToNDecimals } from "./helper.js";
@@ -10,7 +11,7 @@ export const handleDebitNoteStockUpdates = async (items, session) => {
   const productUpdates = [];
   const godownUpdates = [];
 
-  for (const item of items) {
+  for (const item of debitNoteStockItems(items)) {
     const product = await productModel
       .findOne({ _id: item._id })
       .session(session);
@@ -294,7 +295,7 @@ export const revertDebitNoteStockUpdates = async (items, session) => {
     const productUpdates = [];
     const godownUpdates = [];
 
-    for (const item of items) {
+    for (const item of debitNoteStockItems(items)) {
       const product = await productModel
         .findOne({ _id: item._id })
         .session(session);

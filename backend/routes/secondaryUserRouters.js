@@ -1,3 +1,7 @@
+import { createSalesTransaction } from "../controllers/salesTransactionController.js";
+import { getPartyPurchases } from "../controllers/partyPurchasesController.js";
+import { getPartySales } from "../controllers/partySalesController.js";
+import { saveProformaInvoice, getProformaInvoiceDetails, listProformaInvoices, cancelProformaInvoice } from "../controllers/proformaInvoiceController.js";
 import express from 'express'
 const router = express.Router();
 import {
@@ -147,8 +151,15 @@ router.post('/addAditionalCharge/:cmp_id', authSecondary, secondaryIsBlocked, co
 router.delete('/deleteAdditionalCharge/:id/:cmp_id', authSecondary, secondaryIsBlocked, companyAuthentication, deleteAdditionalCharge)
 router.put('/EditAditionalCharge/:id/:cmp_id', authSecondary, secondaryIsBlocked, companyAuthentication, EditAditionalCharge)
 router.post('/addconfigurations/:cmp_id', authSecondary, secondaryIsBlocked, companyAuthentication, addconfigurations)
+router.post('/createPerformaInvoice', authSecondary, secondaryIsBlocked, saveProformaInvoice);
+router.post('/editPerformaInvoice/:id', authSecondary, secondaryIsBlocked, saveProformaInvoice);
+router.get('/getPerformaInvoiceDetails/:id', authSecondary, secondaryIsBlocked, getProformaInvoiceDetails);
+router.get('/performaInvoices/:cmp_id', authSecondary, secondaryIsBlocked, companyAuthentication, listProformaInvoices);
+router.put('/cancelPerformaInvoice/:id', authSecondary, secondaryIsBlocked, cancelProformaInvoice);
 router.post('/createSales', authSecondary, secondaryIsBlocked, createSale)
 router.post('/createVanSale', authSecondary, secondaryIsBlocked, createSale)
+router.get('/partySales/:cmp_id/:partyId', authSecondary, secondaryIsBlocked, companyAuthentication, getPartySales);
+router.get('/partyPurchases/:cmp_id/:partyId', authSecondary, secondaryIsBlocked, companyAuthentication, getPartyPurchases);
 router.get('/getSalesDetails/:id', authSecondary, secondaryIsBlocked, getSalesDetails)
 router.post('/saveSalesNumber/:cmp_id', authSecondary, secondaryIsBlocked, companyAuthentication, saveSalesNumber)
 router.get('/fetchAdditionalDetails/:cmp_id', authSecondary, secondaryIsBlocked, companyAuthentication, fetchAdditionalDetails)
@@ -179,6 +190,7 @@ router.post('/createPurchase', authSecondary, secondaryIsBlocked, createPurchase
 router.post('/editPurchase/:id', authSecondary, secondaryIsBlocked, editPurchase)
 router.put("/cancelpurchase/:id", authSecondary, secondaryIsBlocked, cancelPurchase)
 ///credit not routes
+router.post('/createSalesTransaction', authSecondary, secondaryIsBlocked, createSalesTransaction)
 router.post('/createCreditNote', authSecondary, secondaryIsBlocked, createCreditNote)
 router.get('/getCreditNoteDetails/:id', authSecondary, secondaryIsBlocked, getCreditNoteDetails)
 router.put('/cancelCreditNote/:id', authSecondary, secondaryIsBlocked, cancelCreditNote)
