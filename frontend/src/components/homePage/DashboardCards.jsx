@@ -11,6 +11,7 @@ import reportImg from "../../assets/images/reports.png";
 import hotelImg from "../../assets/images/hotel.png";
 import restaurantImg from "../../assets/images/restaurant.png";
 import api from "@/api/api";
+import { BEVERAGE_INDUSTRY_CODE } from "../../../constants/industries.js";
 
 // API function to fetch dashboard counts
 const fetchDashboardCounts = async (cmp_id) => {
@@ -179,6 +180,14 @@ else {
     },
   ];
 }
+
+  if (organization?.industry === BEVERAGE_INDUSTRY_CODE) {
+    secondary.push({
+      icon: product,
+      subtitle: "Beverage",
+      link: "/sUsers/productList",
+    });
+  }
 
   const cardData = {
     primary,

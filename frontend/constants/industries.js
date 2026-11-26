@@ -1,4 +1,6 @@
 
+export const BEVERAGE_INDUSTRY_CODE = 9;
+
 export const industries = [
   {
     code: 1,
@@ -31,5 +33,9 @@ export const industries = [
   {
     code: 8,
     industry: "Cafe & Bakery",
+  },
+  {
+    code: BEVERAGE_INDUSTRY_CODE,
+    industry: "Beverage",
   },
 ];
