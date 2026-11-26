@@ -10,6 +10,7 @@ import product from "../../assets/images/product.png";
 import reportImg from "../../assets/images/reports.png";
 import hotelImg from "../../assets/images/hotel.png";
 import restaurantImg from "../../assets/images/restaurant.png";
+import Mixologist from "../../assets/images/Mixologist.jpg"
 import api from "@/api/api";
 import { BEVERAGE_INDUSTRY_CODE } from "../../../constants/industries.js";
 
@@ -21,6 +22,8 @@ const fetchDashboardCounts = async (cmp_id) => {
 
   return response.data.data;
 };
+
+
 
 const DashboardCards = ({
   userType,
@@ -118,11 +121,6 @@ if (organization?.industry === 6) {
       link: "/sUsers/RestaurantDashboard",
     },
     {
-      icon: restaurantImg,
-      subtitle: "Bar Management",
-      link: "/sUsers/BarDashboard",
-    },
-    {
       icon: vouchers,
       subtitle: "Vouchers",
       link: "/sUsers/selectVouchers",
@@ -155,7 +153,28 @@ if (organization?.industry === 6) {
       link: "/sUsers/reports",
     },
   ];
+}else if (organization?.industry === 9) {
+  secondary = [
+   
+    {
+      icon: Mixologist,
+      subtitle: "Bar Management",
+      link: "/sUsers/BarDashboard",
+    },
+    {
+      icon: vouchers,
+      subtitle: "Vouchers",
+      link: "/sUsers/selectVouchers",
+    },
+    {
+      icon: reportImg,
+      title: `₹${receiptTotal.toFixed(2)}`,
+      subtitle: "Reports",
+      link: "/sUsers/reports",
+    },
+  ];
 }
+
 else {
   secondary = [
     {
@@ -186,13 +205,13 @@ else {
   ];
 }
 
-  if (organization?.industry === BEVERAGE_INDUSTRY_CODE) {
-    secondary.push({
-      icon: product,
-      subtitle: "Beverage",
-      link: "/sUsers/productList",
-    });
-  }
+  // if (organization?.industry === BEVERAGE_INDUSTRY_CODE) {
+  //   secondary.push({
+  //     icon: product,
+  //     subtitle: "Beverage",
+  //     link: "/sUsers/productList",
+  //   });
+  // }
 
   const cardData = {
     primary,
