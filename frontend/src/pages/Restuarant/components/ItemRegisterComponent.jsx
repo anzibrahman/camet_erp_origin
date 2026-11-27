@@ -6,6 +6,8 @@ import { toast } from "sonner"
 import { MdPlaylistAdd, MdDelete, MdCloudUpload, MdImage } from "react-icons/md"
 import uploadImageToCloudinary from "../../../../utils/uploadCloudinary"
 
+const asConversionRows = (value) => Array.isArray(value) ? value : []
+
 function ItemRegisterComponent({
   pageName,
   optionsData,
@@ -52,9 +54,15 @@ console.log(optionsData)
         altUnit: editData.alt_unit || "",
         unit_conversion: editData.unit_conversion || "",
         alt_unit_conversion: editData.alt_unit_conversion || "",
-        unitConversions: editData.unitConversions?.length || (editData.alt_unit ? [{ fromUnit: editData.unit || "", fromQuantity: editData.unit_conversion || 1, toUnit: editData.alt_unit, toQuantity: editData.alt_unit_conversion }] : []),
+        unitConversions: Array.isArray(editData.unitConversions) && editData.unitConversions.length
+          ? editData.unitConversions
+          : editData.alt_unit
+            ? [{ fromUnit: editData.unit || "", fromQuantity: editData.unit_conversion || 1, toUnit: editData.alt_unit, toQuantity: editData.alt_unit_conversion }]
+            : [],
         isBeverage: Boolean(editData.isBeverage),
-        requiresUnitConversion: Boolean(editData.unitConversions?.length || editData.alt_unit),
+        requiresUnitConversion: Boolean(
+          (Array.isArray(editData.unitConversions) && editData.unitConversions.length) || editData.alt_unit
+        ),
         hsn: editData.hsn_code,
         imageUrl: editData.product_image || "" // Set existing image URL
       })
@@ -222,7 +230,7 @@ console.log(optionsData)
       ...previous,
       requiresUnitConversion,
       ...(requiresUnitConversion
-        ? { unitConversions: previous.unitConversions.length ? previous.unitConversions : [{ fromUnit: previous.unit || "", fromQuantity: "1", toUnit: "", toQuantity: "" }] }
+        ? { unitConversions: asConversionRows(previous.unitConversions).length ? asConversionRows(previous.unitConversions) : [{ fromUnit: previous.unit || "", fromQuantity: "1", toUnit: "", toQuantity: "" }] }
         : {
             altUnit: "",
             unit_conversion: "",
@@ -252,7 +260,7 @@ console.log(optionsData)
   const updateConversion = (index, field, value) => {
     setRoomData((previous) => ({
       ...previous,
-      unitConversions: previous.unitConversions.map((row, rowIndex) =>
+      unitConversions: asConversionRows(previous.unitConversions).map((row, rowIndex) =>
         rowIndex === index ? { ...row, [field]: value } : row
       ),
     }))
@@ -261,14 +269,14 @@ console.log(optionsData)
   const addConversion = () => {
     setRoomData((previous) => ({
       ...previous,
-      unitConversions: [...previous.unitConversions, { fromUnit: previous.unit || "", fromQuantity: "1", toUnit: "", toQuantity: "" }],
+      unitConversions: [...asConversionRows(previous.unitConversions), { fromUnit: previous.unit || "", fromQuantity: "1", toUnit: "", toQuantity: "" }],
     }))
   }
 
   const removeConversion = (index) => {
     setRoomData((previous) => ({
       ...previous,
-      unitConversions: previous.unitConversions.filter((_, rowIndex) => rowIndex !== index),
+      unitConversions: asConversionRows(previous.unitConversions).filter((_, rowIndex) => rowIndex !== index),
     }))
   }
 
@@ -298,7 +306,7 @@ console.log(optionsData)
 
     if (
       roomData.requiresUnitConversion &&
-      (!roomData.unitConversions.length || roomData.unitConversions.some((row) => !row.fromUnit || !row.toUnit || Number(row.fromQuantity) <= 0 || Number(row.toQuantity) <= 0))
+      (!asConversionRows(roomData.unitConversions).length || asConversionRows(roomData.unitConversions).some((row) => !row.fromUnit || !row.toUnit || Number(row.fromQuantity) <= 0 || Number(row.toQuantity) <= 0))
     ) {
       toast.error("Enter both units and their conversion values")
       return false
@@ -587,7 +595,7 @@ console.log(optionsData)
                 onClick={() => setIsConversionModalOpen(true)}
                 className="ml-4 rounded bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700"
               >
-                Configure conversions ({roomData.unitConversions.length})
+                Configure conversions ({asConversionRows(roomData.unitConversions).length})
               </button>
             )}
           </div>
@@ -742,7 +750,7 @@ console.log(optionsData)
                 <button type="button" onClick={() => setIsConversionModalOpen(false)} className="text-xl text-slate-500">×</button>
               </div>
               <div className="space-y-3">
-                {roomData.unitConversions.map((row, index) => (
+                {asConversionRows(roomData.unitConversions).map((row, index) => (
                   <div key={index} className="grid grid-cols-[70px_1fr_24px_70px_1fr_32px] items-center gap-2">
                     <input type="number" min="0.0001" step="any" value={row.fromQuantity} onChange={(e) => updateConversion(index, "fromQuantity", e.target.value)} className="rounded border p-2" />
                     <select value={row.fromUnit} onChange={(e) => updateConversion(index, "fromUnit", e.target.value)} className="rounded border p-2">
