@@ -27,6 +27,7 @@ export const units = [
   { fullForm: "MTS-METRIC TON", shortForm: "MTS" },
   { fullForm: "NOS-NUMBERS", shortForm: "NOS" },
   { fullForm: "PAC-PACKS", shortForm: "PAC" },
+  { fullForm: "PEG-PEG", shortForm: "PEG" },
   { fullForm: "PCS-PIECES", shortForm: "PCS" },
   { fullForm: "PRS-PAIRS", shortForm: "PRS" },
   { fullForm: "QTL-QUINTAL", shortForm: "QTL" },

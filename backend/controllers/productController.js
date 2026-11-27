@@ -297,10 +297,11 @@ export const addProductSubDetails = async (req, res) => {
 
     let findAlreadyNameExist = null;
 
-    if (key === "roomType") {
+    if (key === "roomType" || key === "brand") {
        findAlreadyNameExist = await Brand.findOne({
         brand: subDetails[key],
         cmp_id: orgId,
+        ...(subDetails.under && { under: subDetails.under }),
       });
     } else if (key === "bedType" || key === "Regional Food Category") {
       console.log(subDetails[key],"dsssssssss");
@@ -334,6 +335,7 @@ export const addProductSubDetails = async (req, res) => {
           brand_id: generatedId,
           cmp_id: orgId,
           Primary_user_id: req.pUserId || req.owner,
+          ...(subDetails.under && { under: subDetails.under }),
           ...(Number(subDetails.price) > 0 && {
             roomRent: Number(subDetails.price),
           }),
@@ -441,7 +443,7 @@ export const addProductSubDetails = async (req, res) => {
 export const getProductSubDetails = async (req, res) => {
   try {
     const { orgId } = req.params;
-    const { type } = req.query; // 'type' can be 'brand', 'category', 'subcategory', 'godown', or 'pricelevel'
+    const { type, under } = req.query; // 'type' can be 'brand', 'category', 'subcategory', 'godown', or 'pricelevel'
     const restrict = req.query.restrict === "true" ? true : false;
     const Primary_user_id = req.pUserId || req.owner;
     const secondaryUser = await SecondaryUser.findById(req.sUserId);
@@ -457,6 +459,7 @@ export const getProductSubDetails = async (req, res) => {
         data = await Brand.find({
           cmp_id: orgId,
           Primary_user_id: Primary_user_id,
+          ...(under && { under }),
         });
         break;
       case "bedType":

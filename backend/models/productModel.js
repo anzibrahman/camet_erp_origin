@@ -65,6 +65,16 @@ const productSchema = new mongoose.Schema({
   alt_unit_conversion: {
     type: Number,
   },
+  unitConversions: [{
+    fromUnit: String,
+    fromQuantity: Number,
+    toUnit: String,
+    toQuantity: Number,
+  }],
+  isBeverage: {
+    type: Boolean,
+    default: false,
+  },
 
   hsn_code: {
     type: String,

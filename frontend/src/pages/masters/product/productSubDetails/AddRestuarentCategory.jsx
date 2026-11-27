@@ -16,7 +16,7 @@ function AddRestuarentCategory() {
     <div className="flex h-screen overflow-y-hidden ">
       <div className="flex-1  ">
         <TitleDiv
-          title={ [6, 7].includes(organization?.industry) ? " Regional Food Category" :"Add Category"}
+          title={ [6, 7, 9].includes(organization?.industry) ? " Regional Food Category" :"Add Category"}
           from="/sUsers/restuarentSettings"
           loading={loading}
         />

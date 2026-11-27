@@ -451,7 +451,7 @@ const VoucherSeriesForm = () => {
                   )}
                 </div>
                 {(organization?.industry == 6 ||
-                  organization?.industry == 7 || organization?.industry == 8 ) && (
+                  organization?.industry == 7 || organization?.industry == 8 || organization?.industry == 9 ) && (
                     <div className="space-y-2">
                       <label className="block text-sm font-semibold text-slate-700">
                         Under

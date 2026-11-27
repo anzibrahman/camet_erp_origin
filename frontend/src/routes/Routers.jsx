@@ -1228,6 +1228,14 @@ const Routers = () => {
           }
         ></Route>
         <Route
+          path="/sUsers/restaurantBrand"
+          element={
+            <ProtectedSecRoute>
+              <AddBrand isRestaurantBrand />
+            </ProtectedSecRoute>
+          }
+        ></Route>
+        <Route
           path="/sUsers/category"
           element={
             <ProtectedSecRoute>

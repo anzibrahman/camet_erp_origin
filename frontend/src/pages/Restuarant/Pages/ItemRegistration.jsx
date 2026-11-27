@@ -38,12 +38,13 @@ function ItemRegistration() {
         hsnResPromise,
       ]);
 
-      const { categories, subcategories, priceLevels } =
+      const { brands, categories, subcategories, priceLevels } =
         subDetailsRes.data.data;
 
       setOptionsData((prev) => ({
         ...prev,
 
+        brand: (brands || []).filter((item) => item.under === "restaurant"),
         category: categories,
         subcategory: subcategories,
         priceLevel: priceLevels,

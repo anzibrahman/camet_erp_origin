@@ -112,9 +112,9 @@ const DashboardSummary = () => {
       return;
     }
 
-    // If industry is 6 or 7 → add Dashboard
+    // If the industry supports the hospitality dashboard, add Dashboard.
     const extraData =
-      industry == 6 || industry == 7 || industry == 3 || industry == 8
+      industry == 6 || industry == 7 || industry == 9 || industry == 3 || industry == 8
         ? [
             {
               title: "Dashboard Summary",

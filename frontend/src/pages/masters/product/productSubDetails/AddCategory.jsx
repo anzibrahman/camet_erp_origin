@@ -16,17 +16,17 @@ function AddCategory() {
     <div className="flex h-screen overflow-y-hidden ">
       <div className="flex-1  ">
         <TitleDiv
-          title={ [6, 7].includes(organization?.industry) ? "Bed Type" :"Add Category"}
+          title={ [6, 7, 9].includes(organization?.industry) ? "Bed Type" :"Add Category"}
           from="/sUsers/stockItemSettings"
           loading={loading}
         />
 
         <ProductSubDetailsForm
           tab={
-            [6, 7].includes(organization?.industry) ? "bedType" : "category"
+            [6, 7, 9].includes(organization?.industry) ? "bedType" : "category"
           }
           handleLoader={handleLoader}
-          isHotel={[6, 7].includes(organization?.industry) ? true : false}
+          isHotel={[6, 7, 9].includes(organization?.industry) ? true : false}
         />
       </div>
     </div>

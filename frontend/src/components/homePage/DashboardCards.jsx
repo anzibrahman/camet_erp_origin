@@ -12,7 +12,7 @@ import hotelImg from "../../assets/images/hotel.png";
 import restaurantImg from "../../assets/images/restaurant.png";
 import Mixologist from "../../assets/images/Mixologist.jpg"
 import api from "@/api/api";
-import { BEVERAGE_INDUSTRY_CODE } from "../../../constants/industries.js";
+
 
 // API function to fetch dashboard counts
 const fetchDashboardCounts = async (cmp_id) => {
@@ -120,6 +120,7 @@ if (organization?.industry === 6) {
       subtitle: "Restaurant Management",
       link: "/sUsers/RestaurantDashboard",
     },
+  
     {
       icon: vouchers,
       subtitle: "Vouchers",
@@ -153,14 +154,21 @@ if (organization?.industry === 6) {
       link: "/sUsers/reports",
     },
   ];
-}else if (organization?.industry === 9) {
-  secondary = [
-   
+}
+
+ else if(organization?.industry === 9) {
+     secondary = [
+    {
+      icon: hotelImg,
+      subtitle: "Hotel Management",
+      link: "/sUsers/hotelDashBoard",
+    },
     {
       icon: Mixologist,
-      subtitle: "Bar Management",
-      link: "/sUsers/BarDashboard",
+      subtitle: "Restaurant $ Bar Management",
+      link: "/sUsers/RestaurantDashboard",
     },
+  
     {
       icon: vouchers,
       subtitle: "Vouchers",
@@ -173,7 +181,7 @@ if (organization?.industry === 6) {
       link: "/sUsers/reports",
     },
   ];
-}
+  }
 
 else {
   secondary = [
@@ -205,13 +213,7 @@ else {
   ];
 }
 
-  // if (organization?.industry === BEVERAGE_INDUSTRY_CODE) {
-  //   secondary.push({
-  //     icon: product,
-  //     subtitle: "Beverage",
-  //     link: "/sUsers/productList",
-  //   });
-  // }
+ 
 
   const cardData = {
     primary,

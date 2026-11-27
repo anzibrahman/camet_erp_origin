@@ -1,5 +1,5 @@
 
-export const BEVERAGE_INDUSTRY_CODE = 9;
+
 
 export const industries = [
   {
@@ -35,7 +35,7 @@ export const industries = [
     industry: "Cafe & Bakery",
   },
   {
-    code: BEVERAGE_INDUSTRY_CODE,
-    industry: "Beverage",
+    code: 9,
+    industry: "Beverage, hotel & Restaurant ",
   },
 ];

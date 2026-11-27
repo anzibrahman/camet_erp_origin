@@ -16,7 +16,7 @@ function AddSubCategory() {
     <div className="flex-1 h-screen overflow-y-hidden ">
       <TitleDiv
         title={
-          [6, 7].includes(organization?.industry)
+          [6, 7, 9].includes(organization?.industry)
             ? "Room floor"
             : "Add Sub Category"
         }
@@ -26,10 +26,10 @@ function AddSubCategory() {
 
       <ProductSubDetailsForm
         tab={
-          [6, 7].includes(organization?.industry) ? "roomFloor" : "subcategory"
+          [6, 7, 9].includes(organization?.industry) ? "roomFloor" : "subcategory"
         }
         handleLoader={handleLoader}
-        isHotel={[6, 7].includes(organization?.industry) ? true : false}
+        isHotel={[6, 7, 9].includes(organization?.industry) ? true : false}
       />
     </div>
   );

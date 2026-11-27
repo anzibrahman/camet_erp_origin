@@ -41,7 +41,7 @@ const StockItem = () => {
   useEffect(() => {
   setSettingsOptions([
     {
-      title: industry === 6 || industry === 7 ? "Room Management" : "Stock Item Filter",
+      title: industry === 6 || industry === 7 || industry === 9 ? "Room Management" : "Stock Item Filter",
       description: "Filters only show product creation window if it's enabled",
       icon: <FiSettings />,
       to: "/sUsers/stockItemSettings",
@@ -49,7 +49,7 @@ const StockItem = () => {
     },
 
     // ✅ Conditionally add extra options
-    ...(industry === 6 || industry === 7 || industry === 8
+    ...(industry === 6 || industry === 7 || industry === 8 || industry === 9
       ? [
           {
             title: "Food Product Management",

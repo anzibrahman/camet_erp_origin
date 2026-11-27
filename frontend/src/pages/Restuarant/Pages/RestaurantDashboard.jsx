@@ -178,6 +178,7 @@ const RestaurantPOS = () => {
   const getIndustryTitle = () => {
     if (industry === 6) return "HMS";
     if (industry === 7) return "RMS";
+    if (industry === 9) return "BRMS";
     if (industry === 8) return "CMS";
     return "RMS";
   };
@@ -185,6 +186,7 @@ const RestaurantPOS = () => {
   const getIndustrySubtitle = () => {
     if (industry === 6) return "Hotel";
     if (industry === 7) return "Hotel & Restaurant";
+    if (industry === 9) return "Hotel, Restaurant & Bar";
     if (industry === 8) return "Cafe & Bakery";
     return "Restaurant";
   };

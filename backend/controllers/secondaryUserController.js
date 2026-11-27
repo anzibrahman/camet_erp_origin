@@ -1346,7 +1346,7 @@ export const getAllSubDetails = async (req, res) => {
       ]);
 
     const result = {
-      brands: brands.map((b) => ({ _id: b._id, name: b.brand })),
+      brands: brands.map((b) => ({ _id: b._id, name: b.brand, under: b.under })),
       categories: categories.map((c) => ({ _id: c._id, name: c.category ,under:c.under })),
       subcategories: subcategories.map((s) => ({
         _id: s._id,
@@ -1392,7 +1392,7 @@ export const getAllSubDetailsBasedUnder = async (req, res) => {
 
     const [brands, categories, subcategories, godowns, priceLevels] =
       await Promise.all([
-        Brand.find({ cmp_id, Primary_user_id }).select("_id brand"),
+        Brand.find({ cmp_id, Primary_user_id, ...(under && { under }) }).select("_id brand under"),
         Category.find({ cmp_id, Primary_user_id,under:under }).select("_id category"),
         Subcategory.find({ cmp_id, Primary_user_id ,under:under }).select("_id subcategory category_id"),
         Godown.find({ cmp_id, Primary_user_id,under:under }).select(
@@ -1402,7 +1402,7 @@ export const getAllSubDetailsBasedUnder = async (req, res) => {
       ]);
 
     const result = {
-      brands: brands.map((b) => ({ _id: b._id, name: b.brand })),
+      brands: brands.map((b) => ({ _id: b._id, name: b.brand, under: b.under })),
       categories: categories.map((c) => ({ _id: c._id, name: c.category })),
       subcategories: subcategories.map((s) => ({
         _id: s._id,
