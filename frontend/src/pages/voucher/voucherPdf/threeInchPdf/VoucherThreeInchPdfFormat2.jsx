@@ -1042,7 +1042,7 @@ function VoucherThreeInchPdfFormat2({
                   </div>
                 </div>
 
-                {(org?.industry == 7
+                {(org?.industry == 7 || org?.industry == 9
                   ? calculateTotalTax() > 0
                   : isIndian && isSameState && calculateTotalTax() > 0) && (
                   <>
@@ -1075,7 +1075,7 @@ function VoucherThreeInchPdfFormat2({
               </>
             )}
 
-            {org?.industry != 7 &&
+            {org?.industry != 7 && org?.industry != 9 &&
               isIndian &&
               !isSameState &&
               calculateTotalTax() > 0 && (

@@ -210,7 +210,7 @@ function VoucherThreeInchPdf({
       >
         <div style={{ width: "100%" }}>
           {/* Header */}
-          {org?.industry != 6 && org?.industry != 7 && org?.industry != 8 && (
+          {org?.industry != 6 && org?.industry != 7 && org?.industry != 8 && org?.industry != 9 && (
             <div
               className="header"
               style={{ textAlign: "center", marginBottom: "10px" }}
@@ -296,7 +296,7 @@ function VoucherThreeInchPdf({
           ></div>
 
           <div style={{ textAlign: "center", marginBottom: "10px" }}>
-            {(org?.industry == 6 || org?.industry == 7) && (
+            {(org?.industry == 6 || org?.industry == 7 || org?.industry == 9) && (
               <>
                 <div
                   className="header"

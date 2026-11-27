@@ -56,12 +56,19 @@ const restuarentSettings = () => {
 
   const settingsOptions = [
     {
+      title: "Brand Management",
+      description: "Manage restaurant and bar brands",
+      icon: <MdFoodBank />,
+      to: "/sUsers/restaurantBrand",
+      active: true,
+    },
+    {
       title:
-        industry === 6 || industry === 7 || industry === 8
+        industry === 6 || industry === 7 || industry === 8 || industry === 9
           ? "food Category"
           : "Group Management",
       description:
-        industry === 6 || industry === 7 || industry === 8
+        industry === 6 || industry === 7 || industry === 8 || industry === 9
           ? "Manage your food category effectively"
           : " Manage your food item effectively",
       icon: <MdFoodBank />,
@@ -70,11 +77,11 @@ const restuarentSettings = () => {
     },
     {
       title:
-        industry === 6 || industry === 7 || industry === 8
+        industry === 6 || industry === 7 || industry === 8 || industry === 9
           ? "Item Add"
           : "Group Management",
       description:
-        industry === 6 || industry === 7 || industry === 8
+        industry === 6 || industry === 7 || industry === 8 || industry === 9
           ? "Manage your food name effectively"
           : "Manage your food item effectively",
       icon: <MdFoodBank />,
@@ -83,11 +90,11 @@ const restuarentSettings = () => {
     },
     {
       title:
-        industry === 6 || industry === 7 || industry === 8
+        industry === 6 || industry === 7 || industry === 8 || industry === 9
           ? "Table Master"
           : "Group Management",
       description:
-        industry === 6 || industry === 7 || industry === 8
+        industry === 6 || industry === 7 || industry === 8 || industry === 9
           ? "Manage your Table Entries here"
           : "Manage your Table Addition here",
       icon: <MdFoodBank />,
@@ -96,7 +103,7 @@ const restuarentSettings = () => {
     },
   ];
 
-  if (industry === 7 || industry === 6 || industry === 8) {
+  if (industry === 7 || industry === 9 || industry === 6 || industry === 8) {
     settingsOptions.unshift({
       title: "Kot Default Print",
       description: "Select a default print format for kot",
@@ -272,7 +279,7 @@ const restuarentSettings = () => {
     <div className="bg-white">
       <TitleDiv
         title={
-          industry === 6 || industry === 7 || industry === 8
+          industry === 6 || industry === 7 || industry === 8 || industry === 9
             ? pathname === "/sUsers/restuarentSettings"
               ? "Restaurant Management"
               : "Room Management"

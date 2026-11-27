@@ -2,7 +2,7 @@ import ProductSubDetailsForm from "../../../../components/homePage/ProductSubDet
 import TitleDiv from "../../../../components/common/TitleDiv";
 import { useState } from "react";
 import { useSelector } from "react-redux";
-function AddBrand() {
+function AddBrand({ isRestaurantBrand = false }) {
   let organization = useSelector((state) => state?.secSelectedOrganization?.secSelectedOrg);
   console.log(organization?.industry)
   const [loading, setLoading] = useState(false);
@@ -14,14 +14,15 @@ function AddBrand() {
 return (
   <div className="flex-1 h-screen overflow-y-hidden">
     <TitleDiv
-      title={[6, 7].includes(organization?.industry) ? "Room Type" : "Add Brand"}
-      from="/sUsers/stockItemSettings"
+      title={isRestaurantBrand ? "Brand Management" : [6, 7, 9].includes(organization?.industry) ? "Room Type" : "Add Brand"}
+      from={isRestaurantBrand ? "/sUsers/restuarentSettings" : "/sUsers/stockItemSettings"}
       loading={loading}
     />
     <ProductSubDetailsForm
-      tab={[6, 7].includes(organization?.industry) ? "roomType" : "brand"}
+      tab={isRestaurantBrand ? "brand" : [6, 7, 9].includes(organization?.industry) ? "roomType" : "brand"}
       handleLoader={handleLoader}
-      isHotel={[6, 7].includes(organization?.industry) ? true : false}
+      isHotel={!isRestaurantBrand && [6, 7, 9].includes(organization?.industry)}
+      isRestaurants={isRestaurantBrand}
       
     />
   </div>

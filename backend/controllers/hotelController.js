@@ -2320,9 +2320,7 @@ export const getallnoncheckoutCheckins = async (req, res) => {
       cmp_id,
       status: { $nin: ["checkOut", "cancelled"] },
     });
-    if (allnocheckoutcheckins && allnocheckoutcheckins.length) {
-      return res.json({ success: true, data: allnocheckoutcheckins });
-    }
+    return res.json({ success: true, data: allnocheckoutcheckins });
   } catch (error) {
     console.log("error", error.message);
     return res.status(500).json({

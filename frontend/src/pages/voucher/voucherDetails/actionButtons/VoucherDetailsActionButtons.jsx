@@ -37,7 +37,7 @@ export default function VoucherDetailsActionButtons({
     cancellationAllowed = true,
   } = data || {};
   useEffect(() => {
-    if (organization.industry === 7 || organization.industry === 6) {
+    if (organization.industry === 7 || organization.industry === 9 || organization.industry === 6) {
       console.log("h");
       setisneedReceipt(true);
     }

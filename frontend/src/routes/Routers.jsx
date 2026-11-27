@@ -559,6 +559,14 @@ const Routers = () => {
           }
         ></Route>
         <Route
+          path="/sUsers/BarDashboard"
+          element={
+            <ProtectedSecRoute>
+              <RestaurantDashboard />
+            </ProtectedSecRoute>
+          }
+        ></Route>
+        <Route
           path="/sUsers/invoice"
           element={
             <ProtectedSecRoute>
@@ -1216,6 +1224,14 @@ const Routers = () => {
           element={
             <ProtectedSecRoute>
               <AddBrand />
+            </ProtectedSecRoute>
+          }
+        ></Route>
+        <Route
+          path="/sUsers/restaurantBrand"
+          element={
+            <ProtectedSecRoute>
+              <AddBrand isRestaurantBrand />
             </ProtectedSecRoute>
           }
         ></Route>

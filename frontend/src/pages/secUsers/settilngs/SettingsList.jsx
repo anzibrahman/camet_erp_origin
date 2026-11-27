@@ -18,14 +18,14 @@ const Settings = () => {
 
   const settingsOptions = [
     {
-      title: industry === 6 || industry === 7 || industry === 8 ? "SERVICE MANAGEMENT" : "STOCK ITEM",
+      title: industry === 6 || industry === 7 || industry === 8 || industry === 9 ? "SERVICE MANAGEMENT" : "STOCK ITEM",
       description: "Configure your stock item",
       icon: <HiTemplate />,
       to: "/sUsers/StockItem",
       active: true,
     },
     {
-      title: industry === 6 || industry === 7 || industry === 8 ? "PERMISSION SETTINGS" : "SECURITY",
+      title: industry === 6 || industry === 7 || industry === 8 || industry === 9 ? "PERMISSION SETTINGS" : "SECURITY",
       description: "make you permission settings",
       icon: <HiTemplate />,
       to: "/sUsers/MenuRightsSettingsPage",

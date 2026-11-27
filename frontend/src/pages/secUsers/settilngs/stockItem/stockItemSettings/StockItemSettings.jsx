@@ -45,9 +45,9 @@ const StockItemSettings = () => {
   const settingsOptions = [
     {
       title:
-        industry === 6 || industry === 7 ? "Room Type" : "Brand Management",
+        industry === 6 || industry === 7 || industry === 9 ? "Room Type" : "Brand Management",
       description:
-        industry === 6 || industry === 7
+        industry === 6 || industry === 7 || industry === 9
           ? "Manage your rooms name effectively"
           : "Manage your product brands effectively",
       icon: <MdOutlineBedroomChild />,
@@ -56,9 +56,9 @@ const StockItemSettings = () => {
     },
     {
       title:
-        industry === 6 || industry === 7 ? "Bed Type" : "Category Management",
+        industry === 6 || industry === 7 || industry === 9 ? "Bed Type" : "Category Management",
       description:
-        industry === 6 || industry === 7
+        industry === 6 || industry === 7 || industry === 9
           ? "Organize your rooms by bed type"
           : "Organize your products by category",
       icon: <LuBedSingle />,
@@ -67,18 +67,18 @@ const StockItemSettings = () => {
     },
     {
       title:
-        industry === 6 || industry === 7
+        industry === 6 || industry === 7 || industry === 9
           ? "Room floor"
           : "Subcategory Management",
       description:
-        industry === 6 || industry === 7
+        industry === 6 || industry === 7 || industry === 9
           ? "Define room floor for better room organization"
           : "Define subcategories for better product organization",
       icon: <FiLayers />,
       to: "/sUsers/subcategory",
       active: true,
     },
-    ...(industry === 6 || industry === 7
+    ...(industry === 6 || industry === 7 || industry === 9
       ? [
           {
             title: "Additional pax",
@@ -192,7 +192,7 @@ const StockItemSettings = () => {
       : []),
   ];
 
-  if (industry === 6 || industry === 7) {
+  if (industry === 6 || industry === 7 || industry === 9) {
     settingsOptions.unshift({
       title: "Room Creation",
       description: "Create different room types for better room organization",
@@ -206,7 +206,7 @@ const StockItemSettings = () => {
     <div className="bg-white">
       <TitleDiv
         title={
-          industry === 6 || industry === 7
+          industry === 6 || industry === 7 || industry === 9
             ? "Room Management"
             : "Stock Item Settings"
         }

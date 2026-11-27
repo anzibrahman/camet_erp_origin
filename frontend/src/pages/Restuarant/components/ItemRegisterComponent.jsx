@@ -6,6 +6,8 @@ import { toast } from "sonner"
 import { MdPlaylistAdd, MdDelete, MdCloudUpload, MdImage } from "react-icons/md"
 import uploadImageToCloudinary from "../../../../utils/uploadCloudinary"
 
+const asConversionRows = (value) => Array.isArray(value) ? value : []
+
 function ItemRegisterComponent({
   pageName,
   optionsData,
@@ -21,15 +23,23 @@ console.log(optionsData)
   const [roomData, setRoomData] = useState({
     itemName: "",
     itemCode: "",
+    brand: "",
     foodCategory: "",
     foodType: "",
     unit: "NOS",
+    altUnit: "",
+    unit_conversion: "",
+    alt_unit_conversion: "",
+    unitConversions: [],
+    isBeverage: false,
+    requiresUnitConversion: false,
     hsn: "",
     imageUrl: "" // Add image URL field
   })
   const [imageFile, setImageFile] = useState(null)
   const [imagePreview, setImagePreview] = useState("")
   const [isUploading, setIsUploading] = useState(false)
+  const [isConversionModalOpen, setIsConversionModalOpen] = useState(false)
 
   useEffect(() => {
     if (editData) {
@@ -37,9 +47,22 @@ console.log(optionsData)
       setRoomData({
         itemCode: editData.itemCode || "",
         itemName: editData.product_name,
+        brand: editData.brand?._id || editData.brand || "",
         foodCategory: editData.category,
         foodType: editData.sub_category,
         unit: editData.unit,
+        altUnit: editData.alt_unit || "",
+        unit_conversion: editData.unit_conversion || "",
+        alt_unit_conversion: editData.alt_unit_conversion || "",
+        unitConversions: Array.isArray(editData.unitConversions) && editData.unitConversions.length
+          ? editData.unitConversions
+          : editData.alt_unit
+            ? [{ fromUnit: editData.unit || "", fromQuantity: editData.unit_conversion || 1, toUnit: editData.alt_unit, toQuantity: editData.alt_unit_conversion }]
+            : [],
+        isBeverage: Boolean(editData.isBeverage),
+        requiresUnitConversion: Boolean(
+          (Array.isArray(editData.unitConversions) && editData.unitConversions.length) || editData.alt_unit
+        ),
         hsn: editData.hsn_code,
         imageUrl: editData.product_image || "" // Set existing image URL
       })
@@ -197,6 +220,66 @@ console.log(optionsData)
     }
   }
 
+  const handleUnitConversionToggle = (e) => {
+    const requiresUnitConversion = e.target.checked
+    if (requiresUnitConversion && !roomData.isBeverage) {
+      toast.warning("Select Is Beverage before adding unit conversions. Do not use conversions for food items.")
+      return
+    }
+    setRoomData((previous) => ({
+      ...previous,
+      requiresUnitConversion,
+      ...(requiresUnitConversion
+        ? { unitConversions: asConversionRows(previous.unitConversions).length ? asConversionRows(previous.unitConversions) : [{ fromUnit: previous.unit || "", fromQuantity: "1", toUnit: "", toQuantity: "" }] }
+        : {
+            altUnit: "",
+            unit_conversion: "",
+            alt_unit_conversion: "",
+            unitConversions: [],
+          }),
+    }))
+  }
+
+  const handleBeverageToggle = (e) => {
+    const isBeverage = e.target.checked
+    setRoomData((previous) => ({
+      ...previous,
+      isBeverage,
+      ...(isBeverage
+        ? {}
+        : {
+            requiresUnitConversion: false,
+            unitConversions: [],
+            altUnit: "",
+            unit_conversion: "",
+            alt_unit_conversion: "",
+          }),
+    }))
+  }
+
+  const updateConversion = (index, field, value) => {
+    setRoomData((previous) => ({
+      ...previous,
+      unitConversions: asConversionRows(previous.unitConversions).map((row, rowIndex) =>
+        rowIndex === index ? { ...row, [field]: value } : row
+      ),
+    }))
+  }
+
+  const addConversion = () => {
+    setRoomData((previous) => ({
+      ...previous,
+      unitConversions: [...asConversionRows(previous.unitConversions), { fromUnit: previous.unit || "", fromQuantity: "1", toUnit: "", toQuantity: "" }],
+    }))
+  }
+
+  const removeConversion = (index) => {
+    setRoomData((previous) => ({
+      ...previous,
+      unitConversions: asConversionRows(previous.unitConversions).filter((_, rowIndex) => rowIndex !== index),
+    }))
+  }
+
   const isNonEmptyString = (value) =>
     typeof value === "string" && value.trim() !== ""
 
@@ -218,6 +301,14 @@ console.log(optionsData)
 
     if (!isNonEmptyString(roomData?.unit)) {
       toast.error("Unit is required")
+      return false
+    }
+
+    if (
+      roomData.requiresUnitConversion &&
+      (!asConversionRows(roomData.unitConversions).length || asConversionRows(roomData.unitConversions).some((row) => !row.fromUnit || !row.toUnit || Number(row.fromQuantity) <= 0 || Number(row.toQuantity) <= 0))
+    ) {
+      toast.error("Enter both units and their conversion values")
       return false
     }
 
@@ -365,6 +456,33 @@ console.log(optionsData)
             </div>
           </div>
 
+        
+
+          <div className="w-full lg:w-6/12 px-4">
+            <div className="relative w-full mb-3">
+              <label
+                className="block uppercase text-blueGray-600 text-xs font-bold mb-2"
+                htmlFor="brand"
+              >
+                Brand <span className="normal-case font-normal">(optional)</span>
+              </label>
+              <select
+                id="brand"
+                value={roomData.brand}
+                className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none focus:ring w-full ease-linear transition-all duration-150"
+                name="brand"
+                onChange={handleChange}
+              >
+                <option value="">Select brand</option>
+                {optionsData?.brand?.map((option) => (
+                  <option key={option._id} value={option._id}>
+                    {option.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
           <div className="w-full lg:w-6/12 px-4">
             <div className="relative w-full mb-3">
               <label
@@ -446,7 +564,41 @@ console.log(optionsData)
               </select>
             </div>
           </div>
+  <div className="w-full p-4 ">
+            <label className="inline-flex items-center gap-2 cursor-pointer text-sm font-medium text-blueGray-700">
+              <input
+                type="checkbox"
+                checked={roomData.isBeverage}
+                onChange={handleBeverageToggle}
+                className="h-4 w-4"
+              />
+              Is Beverage
+            </label>
+            <p className="mt-1 text-xs text-amber-700">
+              Select this only for beverage items. Do not select it for food items.
+            </p>
+          </div>
 
+          <div className="w-full px-4 pb-4">
+            <label className="inline-flex items-center gap-2 cursor-pointer text-sm text-blueGray-600">
+              <input
+                type="checkbox"
+                checked={roomData.requiresUnitConversion}
+                onChange={handleUnitConversionToggle}
+                className="h-4 w-4"
+              />
+              Requires unit conversion
+            </label>
+            {roomData.requiresUnitConversion && (
+              <button
+                type="button"
+                onClick={() => setIsConversionModalOpen(true)}
+                className="ml-4 rounded bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700"
+              >
+                Configure conversions ({asConversionRows(roomData.unitConversions).length})
+              </button>
+            )}
+          </div>
           <div className="w-full lg:w-6/12 px-4">
             <div className="relative w-full mb-3">
               <label
@@ -586,6 +738,40 @@ console.log(optionsData)
             {pageName == "Food item Registration" ? "Add" : "Update"}
           </button>
         </div>
+
+        {isConversionModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+            <div className="w-full max-w-3xl rounded-lg bg-white p-5 shadow-xl">
+              <div className="mb-4 flex items-center justify-between">
+                <div>
+                  <h2 className="text-lg font-bold text-slate-800">Unit Conversions</h2>
+                  <p className="text-xs text-slate-500">Example: 1 BTL = 750 MLT; add separate 30, 60, and 90 MLT serving rows.</p>
+                </div>
+                <button type="button" onClick={() => setIsConversionModalOpen(false)} className="text-xl text-slate-500">×</button>
+              </div>
+              <div className="space-y-3">
+                {asConversionRows(roomData.unitConversions).map((row, index) => (
+                  <div key={index} className="grid grid-cols-[70px_1fr_24px_70px_1fr_32px] items-center gap-2">
+                    <input type="number" min="0.0001" step="any" value={row.fromQuantity} onChange={(e) => updateConversion(index, "fromQuantity", e.target.value)} className="rounded border p-2" />
+                    <select value={row.fromUnit} onChange={(e) => updateConversion(index, "fromUnit", e.target.value)} className="rounded border p-2">
+                      <option value="">Unit</option>{units.map((unit) => <option key={unit.shortForm} value={unit.shortForm}>{unit.shortForm}</option>)}
+                    </select>
+                    <span>=</span>
+                    <input type="number" min="0.0001" step="any" value={row.toQuantity} onChange={(e) => updateConversion(index, "toQuantity", e.target.value)} className="rounded border p-2" />
+                    <select value={row.toUnit} onChange={(e) => updateConversion(index, "toUnit", e.target.value)} className="rounded border p-2">
+                      <option value="">Unit</option>{units.map((unit) => <option key={unit.shortForm} value={unit.shortForm}>{unit.shortForm}</option>)}
+                    </select>
+                    <button type="button" onClick={() => removeConversion(index)} className="text-red-600">×</button>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-5 flex justify-between">
+                <button type="button" onClick={addConversion} className="rounded bg-slate-100 px-3 py-2 text-sm font-semibold">Add conversion</button>
+                <button type="button" onClick={() => setIsConversionModalOpen(false)} className="rounded bg-blue-600 px-4 py-2 text-sm font-semibold text-white">Done</button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

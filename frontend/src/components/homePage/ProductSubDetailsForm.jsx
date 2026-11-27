@@ -84,7 +84,9 @@ const ProductSubDetailsForm = ({
       setLoading(true);
       handleLoader(true);
       const res = await api.get(
-        `/api/${user}/getProductSubDetails/${orgId}?type=${tab}`,
+        `/api/${user}/getProductSubDetails/${orgId}?type=${tab}${
+          isRestaurants ? "&under=restaurant" : ""
+        }`,
         {
           withCredentials: true,
         }

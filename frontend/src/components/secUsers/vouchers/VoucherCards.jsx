@@ -225,8 +225,8 @@ const VoucherCards = ({ tab }) => {
     const BasePopular = useMemo(() => {
     const popularItems = [...popular];
     
-    // Add Hotel Summary only for industries 6 and 7
-    if (industry === 6 || industry === 7) {
+    // Add Hotel Summary for hotel-based industries.
+    if (industry === 6 || industry === 7 || industry === 9) {
       popularItems.push({
         title: "Hotel Summary",
         icon: dashboard,

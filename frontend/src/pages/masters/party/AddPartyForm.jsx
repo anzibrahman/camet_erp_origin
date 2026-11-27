@@ -289,7 +289,8 @@ function AddPartyForm({
                     </div>
                   </div>
                   {(selectedOrganization?.industry == 6 ||
-                    selectedOrganization?.industry == 7) && (
+                    selectedOrganization?.industry == 7 ||
+                    selectedOrganization?.industry == 9) && (
                     <div className="w-full lg:w-6/12 px-4">
                       <div className="relative w-full mb-3">
                         <label
